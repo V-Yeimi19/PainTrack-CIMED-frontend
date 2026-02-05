@@ -7,6 +7,7 @@ import { Doctor } from '@/app/types';
 import { mockPatients, getPatientRecords } from '@/app/data/mockData';
 import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
+import ClinicalRow from '@/app/components/ui/clinicalRow';
 
 interface DoctorDashboardProps {
   doctor: Doctor;
@@ -286,39 +287,82 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-green-900 flex items-center justify-between">
-                  <span className="truncate">{selectedPatient.name}</span>
+                  <span className="truncate">Ficha Clínica del Paciente: {selectedPatient.name}</span>
                   <Badge className={`${getStatusColor(getPatientStatus(selectedPatient.dni))} text-white text-xs sm:text-sm px-2 sm:px-3 py-1 flex-shrink-0 ml-2`}>
                     {getStatusText(getPatientStatus(selectedPatient.dni))}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className="bg-blue-50 p-3 sm:p-4 rounded-xl">
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">DNI</p>
-                    <p className="text-base sm:text-lg font-bold text-blue-700">{selectedPatient.dni}</p>
+            <CardContent>
+              <div className="text-sm sm:text-base">
+
+                {/* ===== BLOQUE SUPERIOR 2 COLUMNAS ===== */}
+                <div className="grid grid-cols-1 md:grid-cols-2">
+
+                  {/* IZQUIERDA */}
+                  <div className="md:border-r md:pr-6 space-y-3">
+                    <ClinicalRow label="Nombre" value={selectedPatient.name} />
+                    <ClinicalRow label="Sexo" value={selectedPatient.gender} />
+                    <ClinicalRow label="Lugar de procedencia" value={selectedPatient.originPlace} />
+                    <ClinicalRow label="Peso" value={`${selectedPatient.weight} kg`} />
                   </div>
-                  <div className="bg-purple-50 p-3 sm:p-4 rounded-xl">
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Registros</p>
-                    <p className="text-base sm:text-lg font-bold text-purple-700">{selectedRecords.length}</p>
+
+                  {/* DERECHA */}
+                  <div className="md:pl-6 space-y-3 mt-3 md:mt-0">
+                    <ClinicalRow label="DNI" value={selectedPatient.dni} />
+                    <ClinicalRow label="Edad" value={`${selectedPatient.age} años`} />
+                    <ClinicalRow label="Idioma / Lengua originaria" value={selectedPatient.nativeLanguage.join(', ')} />
+                    <ClinicalRow label="Talla" value={`${selectedPatient.height} m`} />
                   </div>
-                  {selectedPatient.nextAppointment && (
-                    <div className="bg-green-50 p-3 sm:p-4 rounded-xl col-span-2">
-                      <p className="text-xs sm:text-sm text-gray-600 mb-1 flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        Próxima Cita
-                      </p>
-                      <p className="text-base sm:text-lg font-bold text-green-700">
-                        {selectedPatient.nextAppointment.toLocaleDateString('es-ES', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                  )}
+
                 </div>
-              </CardContent>
+
+                {/* ===== BLOQUE MÉDICO COMPLETO ===== */}
+                <div className="border-t mt-6 pt-4 space-y-3">
+
+                  {selectedPatient.caracter && (
+                    <ClinicalRow
+                      label="Carácter"
+                      value={selectedPatient.caracter}
+                      multiline
+                    />
+                  )}
+
+                  {selectedPatient.pathology && (
+                    <ClinicalRow
+                      label="Patología (dolor crónico)"
+                      value={selectedPatient.pathology.join(', ')}
+                      multiline
+                    />
+                  )}
+
+                  {selectedPatient.treatment && (
+                    <ClinicalRow
+                      label="Tratamiento actual"
+                      value={selectedPatient.treatment.join(', ')}
+                      multiline
+                    />
+                  )}
+
+                </div>
+
+                {/* ===== CITA DESTACADA ===== */}
+                {selectedPatient.nextAppointment && (
+                  <div className="border-t mt-6 pt-4">
+                    <ClinicalRow
+                      label="Próxima cita"
+                      value={selectedPatient.nextAppointment.toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                      highlight
+                    />
+                  </div>
+                )}
+
+              </div>  
+            </CardContent>
             </Card>
 
             {/* Estadísticas clave */}
@@ -506,11 +550,11 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-600">Ubicación</p>
+                          <p className="text-xs text-gray-600">Ubicación del dolor</p>
                           <p className="font-bold">{record.location}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-600">Tipo</p>
+                          <p className="text-xs text-gray-600">Tipo de dolor</p>
                           <p className="font-bold">{record.type}</p>
                         </div>
                       </div>
