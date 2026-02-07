@@ -25,10 +25,6 @@ export function Welcome({ onStart, patientName }: WelcomeProps) {
           <p className="text-3xl text-purple-700 font-semibold mb-6 leading-tight">
             Vamos a registrar cómo te sientes hoy
           </p>
-          
-          <p className="text-2xl text-gray-600 leading-relaxed">
-            Te haremos unas preguntas sencillas sobre tu dolor
-          </p>
         </div>
 
         {/* Botón principal */}

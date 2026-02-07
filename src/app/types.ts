@@ -25,11 +25,19 @@ export interface PainRecord {
   painLevel: PainLevel;
   location: PainLocation;
   type: PainType;
+  painDuration?: string; // Por cuánto tiempo tiene este dolor
+  painCause?: {
+    lesion?: boolean;
+    herida?: boolean;
+    golpe?: boolean;
+    noSabe?: boolean;
+  };
 }
 
 export interface Patient {
   dni: string;
   name: string;
+  password?: string; // Contraseña para el login
   nextAppointment?: Date;
   status?: "estable" | "advertencia" | "crítico"; // Semáforo clínico
   needsAppointment?: boolean; // Para notificaciones
@@ -44,6 +52,13 @@ export interface Patient {
   height: number;
   treatment?: string[];
   caracter?: string;
+  numberOfChildren?: string;
+  educationLevel?: string;
+  occupation?: string;
+  referringDoctor?: string;
+  whoRecommended?: string;
+  referralDataLastModified?: Date; // Fecha de última modificación de los datos de referencia
+  conclusivePathology?: string[]; // Patologías concluyentes agregadas después de cada registro de dolor
 }
 
 export interface Doctor {

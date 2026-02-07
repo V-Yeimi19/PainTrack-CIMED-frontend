@@ -4,15 +4,27 @@ import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { Patient } from '@/app/types';
 import { getPatientRecords } from '@/app/data/mockData';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Calendar, Plus, LogOut, AlertTriangle, CalendarCheck, Activity } from 'lucide-react';
+import { Calendar, Plus, LogOut, AlertTriangle, CalendarCheck, Activity, User } from 'lucide-react';
 
 interface PatientDashboardProps {
   patient: Patient;
   onNewRecord: () => void;
   onLogout: () => void;
+  onViewProfile?: () => void;
 }
 
-export function PatientDashboard({ patient, onNewRecord, onLogout }: PatientDashboardProps) {
+export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile }: PatientDashboardProps) {
+  // Validar que patient existe
+  if (!patient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl text-gray-500 mb-4">Error: No se encontró información del paciente</p>
+        </div>
+      </div>
+    );
+  }
+
   const records = getPatientRecords(patient.dni);
   
   // Obtener últimos 7 días
@@ -74,31 +86,50 @@ export function PatientDashboard({ patient, onNewRecord, onLogout }: PatientDash
             </h1>
             <p className="text-xl sm:text-3xl text-gray-700">¿Cómo te sientes hoy?</p>
           </div>
-          <Button
-            onClick={onLogout}
-            variant="outline"
-            className="h-12 sm:h-16 px-4 sm:px-8 text-base sm:text-xl font-bold"
-          >
-            <LogOut className="w-4 h-4 sm:w-6 sm:h-6 mr-2" />
-            SALIR
-          </Button>
+          <div className="flex flex-col gap-2">
+            {onViewProfile && (
+              <Button
+                onClick={onViewProfile}
+                variant="outline"
+                className="h-12 sm:h-16 px-4 sm:px-8 text-base sm:text-xl font-bold"
+              >
+                <User className="w-4 h-4 sm:w-6 sm:h-6 mr-2" />
+                PERFIL
+              </Button>
+            )}
+            <Button
+              onClick={onLogout}
+              variant="outline"
+              className="h-12 sm:h-16 px-4 sm:px-8 text-base sm:text-xl font-bold"
+            >
+              <LogOut className="w-4 h-4 sm:w-6 sm:h-6 mr-2" />
+              SALIR
+            </Button>
+          </div>
         </div>
 
         {/* Alertas y notificaciones inteligentes */}
         {needsAppointment && (
           <Alert className="mb-4 sm:mb-6 border-2 border-red-500 bg-red-50">
             <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
-            <AlertDescription className="text-lg sm:text-2xl font-semibold text-red-900 ml-2">
+            <AlertDescription className="text-lg sm:text-2xl font-semibold text-red-900 ml-2 mb-4">
               Tu dolor ha aumentado significativamente. Te recomendamos agendar una cita médica.
             </AlertDescription>
+            <Button
+              className="w-full h-16 sm:h-20 text-xl sm:text-2xl font-bold bg-red-600 hover:bg-red-700 shadow-xl"
+            >
+              SOLICITAR CITA
+            </Button>
           </Alert>
         )}
 
-        {daysSinceLastRecord >= 2 && (
+        {daysSinceLastRecord >= 1 && !needsAppointment && (
           <Alert className="mb-4 sm:mb-6 border-2 border-blue-500 bg-blue-50">
             <CalendarCheck className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             <AlertDescription className="text-lg sm:text-2xl font-semibold text-blue-900 ml-2">
-              No olvides registrar cómo te sientes hoy. Hace {daysSinceLastRecord} días que no registras tu dolor.
+              {daysSinceLastRecord === 1 
+                ? 'No olvides registrar cómo te sientes hoy.'
+                : `No olvides registrar cómo te sientes hoy. Hace ${daysSinceLastRecord} días que no registras tu dolor.`}
             </AlertDescription>
           </Alert>
         )}
@@ -171,15 +202,15 @@ export function PatientDashboard({ patient, onNewRecord, onLogout }: PatientDash
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="date" 
-                    style={{ fontSize: window.innerWidth < 640 ? '14px' : '18px', fontWeight: 'bold' }}
+                    style={{ fontSize: '18px', fontWeight: 'bold' }}
                   />
                   <YAxis 
                     domain={[0, 10]}
-                    style={{ fontSize: window.innerWidth < 640 ? '14px' : '18px', fontWeight: 'bold' }}
+                    style={{ fontSize: '18px', fontWeight: 'bold' }}
                   />
                   <Tooltip 
-                    contentStyle={{ fontSize: window.innerWidth < 640 ? '16px' : '20px', fontWeight: 'bold' }}
-                    labelStyle={{ fontSize: window.innerWidth < 640 ? '14px' : '18px' }}
+                    contentStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                    labelStyle={{ fontSize: '18px' }}
                   />
                   <Bar dataKey="nivel" radius={[8, 8, 0, 0]}>
                     {lastWeekRecords.map((entry, index) => (

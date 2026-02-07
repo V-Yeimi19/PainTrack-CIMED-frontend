@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 import { findPatientByDNI, findDoctorByCode } from '@/app/data/mockData';
 import { Patient, Doctor } from '@/app/types';
-import { User, Stethoscope, Activity } from 'lucide-react';
+import { User, Stethoscope, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 interface LoginProps {
   onPatientLogin: (patient: Patient) => void;
@@ -15,16 +16,23 @@ type Role = 'patient' | 'doctor' | null;
 export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
   const [role, setRole] = useState<Role>(null);
   const [dni, setDni] = useState('');
+  const [patientPassword, setPatientPassword] = useState('');
   const [doctorCode, setDoctorCode] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPatientPassword, setShowPatientPassword] = useState(false);
 
   const handlePatientLogin = () => {
     const patient = findPatientByDNI(dni);
     if (patient) {
-      onPatientLogin(patient);
+      if (patient.password && patient.password !== patientPassword) {
+        setError('DNI o contraseña incorrectos. Prueba con: 12345678 / 1234');
+      } else {
+        onPatientLogin(patient);
+      }
     } else {
-      setError('DNI no encontrado. Prueba con: 12345678');
+      setError('DNI o contraseña incorrectos. Prueba con: 12345678 / 1234');
     }
   };
 
@@ -37,176 +45,207 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
     }
   };
 
+  // Pantalla inicial de selección de rol
   if (role === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-teal-50 flex flex-col">
-        <div className="flex-1 flex flex-col justify-center px-6 py-12">
-          {/* Logo y Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <div className="bg-blue-600 p-6 rounded-3xl shadow-2xl">
-                <Activity className="w-16 h-16 text-white" strokeWidth={2.5} />
+      <div className="min-h-screen flex">
+        {/* Panel izquierdo - Formulario */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center bg-[hsl(270,81%,95%)] p-8 lg:p-12">
+          <div className="w-full max-w-md">
+            <div className="mb-8 flex justify-center relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-48 h-48 lg:w-56 lg:h-56 bg-white/50 rounded-full blur-3xl"></div>
               </div>
-            </div>
-            <h1 className="text-5xl font-bold text-blue-900 mb-4">
-              PainTrack CIMED
-            </h1>
-            <p className="text-2xl text-gray-600 font-medium">
-              Gestionemos tu dolor
-            </p>
-          </div>
-
-          {/* Botones de selección */}
-          <div className="space-y-4 max-w-md mx-auto w-full">
-            <Button
-              onClick={() => setRole('patient')}
-              className="w-full h-28 text-3xl font-bold bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-4 shadow-xl"
-              size="lg"
-            >
-              <User className="w-10 h-10" strokeWidth={2.5} />
-              👤 Soy Paciente
-            </Button>
-            <Button
-              onClick={() => setRole('doctor')}
-              className="w-full h-28 text-3xl font-bold bg-green-600 hover:bg-green-700 flex items-center justify-center gap-4 shadow-xl"
-              size="lg"
-            >
-              <Stethoscope className="w-10 h-10" strokeWidth={2.5} />
-              🩺 Soy Médico
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (role === 'patient') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col">
-        <div className="flex-1 flex flex-col justify-center px-6 py-12">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="flex justify-center mb-6">
-              <div className="bg-blue-600 p-5 rounded-3xl shadow-xl">
-                <User className="w-12 h-12 text-white" strokeWidth={2.5} />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold text-blue-900 mb-3">
-              Acceso Paciente
-            </h1>
-            <p className="text-xl text-gray-600">Ingresa tu DNI</p>
-          </div>
-
-          {/* Formulario */}
-          <div className="space-y-8 max-w-md mx-auto w-full">
-            <div>
-              <Input
-                type="tel"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="DNI"
-                value={dni}
-                onChange={(e) => {
-                  setDni(e.target.value.replace(/\D/g, ''));
-                  setError('');
-                }}
-                className="h-24 text-4xl text-center font-bold shadow-lg"
-                maxLength={8}
+              <img 
+                src="/images/logo-cimed.png" 
+                alt="CIMED Logo" 
+                className="h-32 lg:h-40 w-auto object-contain brightness-125 drop-shadow-[0_0_30px_rgba(255,255,255,1),0_0_60px_rgba(255,255,255,0.8),0_0_90px_rgba(255,255,255,0.5)] filter relative z-10"
               />
             </div>
-            
-            {error && (
-              <p className="text-red-600 text-lg text-center font-semibold bg-red-50 p-4 rounded-xl">{error}</p>
-            )}
-            
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2 text-center [text-shadow:_-2px_-2px_0_hsl(270_70%_60%),_2px_-2px_0_hsl(270_70%_60%),_-2px_2px_0_hsl(270_70%_60%),_2px_2px_0_hsl(270_70%_60%)]">
+              Iniciar Sesión
+            </h1>
+            <p className="text-lg text-gray-600 mb-8 text-center">
+              Bienvenido a PainTrack CIMED
+            </p>
+
             <div className="space-y-4">
               <Button
-                onClick={handlePatientLogin}
-                className="w-full h-24 text-3xl font-bold bg-blue-600 hover:bg-blue-700 shadow-xl"
-                disabled={dni.length < 7}
+                onClick={() => setRole('patient')}
+                className="w-full h-20 text-xl font-semibold flex items-center justify-center text-white bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] transition-all rounded-xl border-0 shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)]"
               >
-                CONTINUAR
+                Soy Paciente
               </Button>
               <Button
-                onClick={() => {
-                  setRole(null);
-                  setDni('');
-                  setError('');
-                }}
-                variant="outline"
-                className="w-full h-20 text-2xl font-bold"
+                onClick={() => setRole('doctor')}
+                className="w-full h-20 text-xl font-semibold flex items-center justify-center text-white bg-gradient-to-r from-[hsl(270,70%,50%)]/60 to-[hsl(270,70%,45%)]/60 hover:from-[hsl(270,70%,45%)]/70 hover:to-[hsl(270,70%,40%)]/70 transition-all rounded-xl border-0 border-[hsl(270,70%,50%)]/40"
               >
-                ATRÁS
+                Soy Médico
               </Button>
             </div>
+          </div>
+        </div>
+
+        {/* Panel derecho - Imagen de fondo */}
+        <div className="hidden lg:flex lg:w-1/2 relative bg-purple-900">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url(/images/medico.jpg)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/50 via-white/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(210,11%,16%)]/70 via-[hsl(270,81%,56%)]/40 to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
+            <h2 className="text-4xl font-bold text-white mb-4 text-center">
+              PainTrack CIMED
+            </h2>
+            <p className="text-xl text-white/90 text-center max-w-md">
+              Sistema de Seguimiento y Gestión del Dolor
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex flex-col">
-      <div className="flex-1 flex flex-col justify-center px-6 py-12">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="flex justify-center mb-6">
-            <div className="bg-green-600 p-5 rounded-3xl shadow-xl">
-              <Stethoscope className="w-12 h-12 text-white" strokeWidth={2.5} />
+  // Formulario de Paciente
+  if (role === 'patient') {
+    return (
+      <div className="min-h-screen flex">
+        {/* Panel izquierdo - Formulario */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center bg-[hsl(270,81%,95%)] p-8 lg:p-12">
+          <div className="w-full max-w-md">
+            <Button
+              onClick={() => {
+                setRole(null);
+                setDni('');
+                setPatientPassword('');
+                setError('');
+              }}
+              variant="ghost"
+              className="mb-8 p-4 text-lg font-semibold text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] hover:bg-[hsl(270,81%,96%)] rounded-lg transition-all min-h-[56px]"
+            >
+              <ArrowLeft className="w-6 h-6 mr-3" />
+              Volver
+            </Button>
+
+            <div className="mb-6 flex justify-center">
+              <img 
+                src="/images/logo-cimed.png" 
+                alt="CIMED Logo" 
+                className="h-32 lg:h-40 w-auto object-contain brightness-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] filter"
+              />
+            </div>
+
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2 text-center [text-shadow:_-2px_-2px_0_hsl(270_70%_50%),_2px_-2px_0_hsl(270_70%_50%),_-2px_2px_0_hsl(270_70%_50%),_2px_2px_0_hsl(270_70%_50%)]">
+              Acceso Paciente
+            </h1>
+            <p className="text-lg text-gray-600 mb-8 text-center">
+              Ingresa tus credenciales para continuar
+            </p>
+
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="dni" className="text-base font-semibold text-gray-700 mb-2 block">
+                  DNI
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[hsl(270,81%,56%)] z-10" />
+                  <Input
+                    id="dni"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="12345678"
+                    value={dni}
+                    onChange={(e) => {
+                      setDni(e.target.value.replace(/\D/g, '').slice(0, 8));
+                      setError('');
+                    }}
+                    className="h-14 pl-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                    maxLength={8}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="patientPassword" className="text-base font-semibold text-gray-700 mb-2 block">
+                  Contraseña
+                </Label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[hsl(270,81%,56%)] z-10">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <Input
+                    id="patientPassword"
+                    type={showPatientPassword ? 'text' : 'password'}
+                    placeholder="Contraseña"
+                    value={patientPassword}
+                    onChange={(e) => {
+                      setPatientPassword(e.target.value);
+                      setError('');
+                    }}
+                    className="h-14 pl-12 pr-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPatientPassword(!showPatientPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] z-10"
+                  >
+                    {showPatientPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                onClick={handlePatientLogin}
+                className="w-full h-14 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0 shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:shadow-none"
+                disabled={dni.length < 7 || !patientPassword}
+              >
+                Continuar
+              </Button>
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-green-900 mb-3">
-            Acceso Médico
-          </h1>
-          <p className="text-xl text-gray-600">Ingresa tus credenciales</p>
         </div>
 
-        {/* Formulario */}
-        <div className="space-y-6 max-w-md mx-auto w-full">
-          <div>
-            <label className="text-xl font-semibold text-gray-700 mb-3 block">
-              Correo electrónico
-            </label>
-            <Input
-              type="text"
-              placeholder="Código de médico"
-              value={doctorCode}
-              onChange={(e) => {
-                setDoctorCode(e.target.value.toUpperCase());
-                setError('');
-              }}
-              className="h-20 text-3xl text-center font-bold shadow-lg"
-            />
+        {/* Panel derecho - Imagen de fondo */}
+        <div className="hidden lg:flex lg:w-1/2 relative bg-purple-900">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url(/images/paciente.png)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/50 via-white/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(270,81%,56%)]/70 via-[hsl(270,81%,56%)]/40 to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
+            <h2 className="text-4xl font-bold text-white mb-4 text-center">
+              PainTrack CIMED
+            </h2>
+            <p className="text-xl text-white/90 text-center max-w-md">
+              Sistema de Seguimiento y Gestión del Dolor
+            </p>
           </div>
-          
-          <div>
-            <label className="text-xl font-semibold text-gray-700 mb-3 block">
-              Contraseña
-            </label>
-            <Input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              className="h-20 text-3xl text-center shadow-lg"
-            />
-          </div>
-          
-          {error && (
-            <p className="text-red-600 text-lg text-center font-semibold bg-red-50 p-4 rounded-xl">{error}</p>
-          )}
-          
-          <div className="space-y-4">
-            <Button
-              onClick={handleDoctorLogin}
-              className="w-full h-24 text-3xl font-bold bg-green-600 hover:bg-green-700 shadow-xl"
-              disabled={!doctorCode || !password}
-            >
-              INICIAR SESIÓN
-            </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Formulario de Médico
+  return (
+    <div className="min-h-screen flex">
+        {/* Panel izquierdo - Formulario */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center bg-[hsl(270,81%,95%)] p-8 lg:p-12">
+          <div className="w-full max-w-md">
             <Button
               onClick={() => {
                 setRole(null);
@@ -214,12 +253,121 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                 setPassword('');
                 setError('');
               }}
-              variant="outline"
-              className="w-full h-20 text-2xl font-bold"
+              variant="ghost"
+              className="mb-8 p-4 text-lg font-semibold text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] hover:bg-[hsl(270,81%,96%)] rounded-lg transition-all min-h-[56px]"
             >
-              ATRÁS
+              <ArrowLeft className="w-6 h-6 mr-3" />
+              Volver
+            </Button>
+
+            <div className="mb-6 flex justify-center">
+              <img 
+                src="/images/logo-cimed.png" 
+                alt="CIMED Logo" 
+                className="h-32 lg:h-40 w-auto object-contain brightness-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] filter"
+              />
+            </div>
+
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2 text-center [text-shadow:_-2px_-2px_0_hsl(270_70%_50%),_2px_-2px_0_hsl(270_70%_50%),_-2px_2px_0_hsl(270_70%_50%),_2px_2px_0_hsl(270_70%_50%)]">
+              Acceso Médico
+            </h1>
+            <p className="text-lg text-gray-600 mb-8 text-center">
+              Ingresa tus credenciales para continuar
+            </p>
+
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="doctorCode" className="text-base font-semibold text-gray-700 mb-2 block">
+                Código médico
+              </Label>
+              <div className="relative">
+                <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[hsl(270,81%,56%)] z-10" />
+                <Input
+                  id="doctorCode"
+                  type="text"
+                  placeholder="MED001"
+                  value={doctorCode}
+                  onChange={(e) => {
+                    setDoctorCode(e.target.value.toUpperCase());
+                    setError('');
+                  }}
+                  className="h-14 pl-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="text-base font-semibold text-gray-700 mb-2 block">
+                Contraseña
+              </Label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[hsl(270,81%,56%)] z-10">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Contraseña"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                  }}
+                  className="h-14 pl-12 pr-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] z-10"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <Button
+              onClick={handleDoctorLogin}
+              className="w-full h-14 text-lg font-semibold shadow-lg text-white bg-gradient-to-r from-[hsl(270,81%,56%)] to-[hsl(270,81%,50%)] hover:from-[hsl(270,81%,50%)] hover:to-[hsl(270,81%,45%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0"
+              disabled={!doctorCode || !password}
+            >
+              Iniciar Sesión
             </Button>
           </div>
+        </div>
+      </div>
+
+      {/* Panel derecho - Imagen de fondo con logo */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+          style={{ backgroundImage: 'url(/images/medico.jpg)' }}
+        />
+        <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
+          <div className="mb-8">
+            <img 
+              src="/images/logo-cimed.png" 
+              alt="CIMED Logo" 
+              className="h-32 w-auto object-contain"
+            />
+          </div>
+          <h2 className="text-4xl font-bold text-white mb-4 text-center">
+            PainTrack CIMED
+          </h2>
+          <p className="text-xl text-white/90 text-center max-w-md">
+            Sistema de Seguimiento y Gestión del Dolor
+          </p>
         </div>
       </div>
     </div>

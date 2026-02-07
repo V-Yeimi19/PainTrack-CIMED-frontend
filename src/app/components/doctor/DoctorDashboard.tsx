@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { Badge } from '@/app/components/ui/badge';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 import { Doctor } from '@/app/types';
-import { mockPatients, getPatientRecords } from '@/app/data/mockData';
-import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin } from 'lucide-react';
+import { mockPatients, getPatientRecords, addPainRecord } from '@/app/data/mockData';
+import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import ClinicalRow from '@/app/components/ui/clinicalRow';
+import { ConsultationForm, ConsultationData } from './ConsultationForm';
 
 interface DoctorDashboardProps {
   doctor: Doctor;
@@ -16,9 +19,32 @@ interface DoctorDashboardProps {
 
 export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   const [selectedPatientDNI, setSelectedPatientDNI] = useState<string | null>(null);
+  const [showConsultationForm, setShowConsultationForm] = useState(false);
+  const [patients, setPatients] = useState(() => {
+    // Cargar pacientes desde localStorage si existen
+    const storedPatients = localStorage.getItem('patients');
+    if (storedPatients) {
+      try {
+        const parsed = JSON.parse(storedPatients);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((p: any) => ({
+            ...p,
+            nextAppointment: p.nextAppointment ? new Date(p.nextAppointment) : undefined,
+            referralDataLastModified: p.referralDataLastModified ? new Date(p.referralDataLastModified) : undefined,
+          }));
+        }
+      } catch (e) {
+        console.error('Error loading patients from localStorage:', e);
+      }
+    }
+    return mockPatients;
+  });
+  const [refreshKey, setRefreshKey] = useState(0); // Para forzar actualización de registros
+  const [showEditReferral, setShowEditReferral] = useState(false);
+  const [referralData, setReferralData] = useState({ referringDoctor: '', whoRecommended: '' });
 
   const selectedPatient = selectedPatientDNI 
-    ? mockPatients.find(p => p.dni === selectedPatientDNI)
+    ? patients.find(p => p.dni === selectedPatientDNI)
     : null;
 
   const selectedRecords = selectedPatientDNI 
@@ -71,9 +97,9 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   }));
 
   // Contar pacientes por estado
-  const criticalCount = mockPatients.filter(p => getPatientStatus(p.dni) === 'critical').length;
-  const warningCount = mockPatients.filter(p => getPatientStatus(p.dni) === 'warning').length;
-  const stableCount = mockPatients.filter(p => getPatientStatus(p.dni) === 'stable').length;
+  const criticalCount = patients.filter(p => getPatientStatus(p.dni) === 'critical').length;
+  const warningCount = patients.filter(p => getPatientStatus(p.dni) === 'warning').length;
+  const stableCount = patients.filter(p => getPatientStatus(p.dni) === 'stable').length;
 
   // Detectar cambios bruscos
   const hasAbruptChange = (dni: string) => {
@@ -158,6 +184,41 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
 
   const stats = selectedPatient ? getPatientStats() : null;
 
+  // Inicializar datos de referencia cuando se selecciona un paciente
+  useEffect(() => {
+    if (selectedPatient) {
+      setReferralData({
+        referringDoctor: selectedPatient.referringDoctor || '',
+        whoRecommended: selectedPatient.whoRecommended || ''
+      });
+    }
+  }, [selectedPatientDNI]);
+
+  // Función para guardar datos de referencia
+  const handleSaveReferralData = () => {
+    if (selectedPatientDNI) {
+      const now = new Date();
+      const updatedPatients = patients.map(p => 
+        p.dni === selectedPatientDNI 
+          ? { ...p, referringDoctor: referralData.referringDoctor, whoRecommended: referralData.whoRecommended, referralDataLastModified: now }
+          : p
+      );
+      setPatients(updatedPatients);
+      
+      // Guardar en localStorage
+      const storedPatients = JSON.parse(localStorage.getItem('patients') || '[]');
+      const updatedStoredPatients = storedPatients.map((p: any) => 
+        p.dni === selectedPatientDNI 
+          ? { ...p, referringDoctor: referralData.referringDoctor, whoRecommended: referralData.whoRecommended, referralDataLastModified: now.toISOString() }
+          : p
+      );
+      localStorage.setItem('patients', JSON.stringify(updatedStoredPatients));
+      
+      setShowEditReferral(false);
+      alert('Datos de referencia guardados exitosamente');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
       {/* Header fijo */}
@@ -237,7 +298,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {mockPatients.map((patient) => {
+              {patients.map((patient) => {
                 const status = getPatientStatus(patient.dni);
                 const hasChange = hasAbruptChange(patient.dni);
                 const records = getPatientRecords(patient.dni);
@@ -280,9 +341,97 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
           </CardContent>
         </Card>
 
+        {/* Formulario de Consulta */}
+        {showConsultationForm && selectedPatient && (
+          <ConsultationForm
+            patient={selectedPatient}
+            onSave={(data: ConsultationData) => {
+              // Guardar nuevo registro de dolor
+              if (data.painLocation && data.painLevel !== undefined) {
+                // Solo guardar el dolor si no se ha guardado antes (primera vez)
+                if (data.conclusivePathology === undefined) {
+                  addPainRecord({
+                    patientDNI: selectedPatient.dni,
+                    date: new Date(),
+                    painLevel: data.painLevel,
+                    location: data.painLocation,
+                    type: 'Molesto', // Valor por defecto, se puede ajustar
+                    painDuration: data.painDuration,
+                    painCause: data.painCause,
+                  });
+                  
+                  // Forzar actualización de los registros
+                  setRefreshKey(prev => prev + 1);
+                  
+                  // No cerrar el formulario aquí, dejar que aparezca la sección de patología concluyente
+                  return;
+                }
+                
+                // Si hay patología concluyente, agregarla al array de pathology del paciente
+                if (data.conclusivePathology && data.conclusivePathology.trim()) {
+                  const updatedPatients = patients.map(p => {
+                    if (p.dni === selectedPatient.dni) {
+                      const currentPathology = p.pathology || [];
+                      // Evitar duplicados
+                      if (!currentPathology.includes(data.conclusivePathology.trim())) {
+                        return {
+                          ...p,
+                          pathology: [...currentPathology, data.conclusivePathology.trim()]
+                        };
+                      }
+                      return p;
+                    }
+                    return p;
+                  });
+                  setPatients(updatedPatients);
+                  
+                  // Guardar en localStorage
+                  const storedPatients = JSON.parse(localStorage.getItem('patients') || '[]');
+                  const updatedStoredPatients = storedPatients.map((p: any) => {
+                    if (p.dni === selectedPatient.dni) {
+                      const currentPathology = p.pathology || [];
+                      if (!currentPathology.includes(data.conclusivePathology.trim())) {
+                        return {
+                          ...p,
+                          pathology: [...currentPathology, data.conclusivePathology.trim()]
+                        };
+                      }
+                    }
+                    return p;
+                  });
+                  localStorage.setItem('patients', JSON.stringify(updatedStoredPatients));
+                  
+                  alert('Dolor y patología concluyente guardados exitosamente');
+                } else if (data.conclusivePathology === '') {
+                  // Si se omite la patología concluyente (string vacío), solo cerrar
+                  alert('Dolor registrado exitosamente');
+                }
+                
+                setShowConsultationForm(false);
+              } else {
+                alert('Por favor complete todos los campos requeridos (ubicación y nivel de dolor)');
+              }
+            }}
+            onCancel={() => setShowConsultationForm(false)}
+          />
+        )}
+
         {/* Detalles del paciente seleccionado */}
-        {selectedPatient && stats ? (
+        {selectedPatient && stats && !showConsultationForm ? (
           <div className="space-y-4 sm:space-y-6">
+            {/* Botón para registrar nuevo dolor */}
+            <Card className="shadow-xl bg-gradient-to-r from-green-50 to-green-100">
+              <CardContent className="p-4">
+                <Button
+                  onClick={() => setShowConsultationForm(true)}
+                  className="w-full h-16 text-xl font-bold bg-green-600 hover:bg-green-700 shadow-lg"
+                >
+                  <FileText className="w-6 h-6 mr-2" />
+                  Registrar Nuevo Dolor
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Información básica */}
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
@@ -305,6 +454,8 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     <ClinicalRow label="Sexo" value={selectedPatient.gender} />
                     <ClinicalRow label="Lugar de procedencia" value={selectedPatient.originPlace} />
                     <ClinicalRow label="Peso" value={`${selectedPatient.weight} kg`} />
+                    <ClinicalRow label="N° Hijos" value={selectedPatient.numberOfChildren || 'No especificado'} />
+                    <ClinicalRow label="Nivel Educativo" value={selectedPatient.educationLevel || 'No especificado'} />
                   </div>
 
                   {/* DERECHA */}
@@ -313,6 +464,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     <ClinicalRow label="Edad" value={`${selectedPatient.age} años`} />
                     <ClinicalRow label="Idioma / Lengua originaria" value={selectedPatient.nativeLanguage.join(', ')} />
                     <ClinicalRow label="Talla" value={`${selectedPatient.height} m`} />
+                    <ClinicalRow label="Ocupación" value={selectedPatient.occupation || 'No especificado'} />
                   </div>
 
                 </div>
@@ -328,12 +480,22 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     />
                   )}
 
-                  {selectedPatient.pathology && (
-                    <ClinicalRow
-                      label="Patología (dolor crónico)"
-                      value={selectedPatient.pathology.join(', ')}
-                      multiline
-                    />
+                  {selectedPatient.pathology && selectedPatient.pathology.length > 0 && (
+                    <div>
+                      <label className="text-sm sm:text-base font-semibold text-gray-700 mb-2 block">
+                        Patología (dolor crónico)
+                      </label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selectedPatient.pathology.map((path, index) => (
+                          <Badge 
+                            key={index}
+                            className="bg-purple-100 text-purple-800 hover:bg-purple-200 px-3 py-1 text-sm font-medium"
+                          >
+                            {path}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {selectedPatient.treatment && (
@@ -360,6 +522,104 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     />
                   </div>
                 )}
+
+                {/* ===== SECCIÓN DE REFERENCIA (EDITABLE) ===== */}
+                <div className="border-t mt-6 pt-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold text-green-900">Información de Referencia</h3>
+                    {!showEditReferral && (
+                      <Button
+                        onClick={() => setShowEditReferral(true)}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3"
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        Editar
+                      </Button>
+                    )}
+                  </div>
+
+                  {showEditReferral ? (
+                    <div className="space-y-4 bg-gray-50 p-4 rounded-xl">
+                      <div>
+                        <Label htmlFor="referringDoctor" className="text-base font-semibold text-gray-700">
+                          Médico que refiere al paciente:
+                        </Label>
+                        <Input
+                          id="referringDoctor"
+                          value={referralData.referringDoctor}
+                          onChange={(e) => setReferralData({ ...referralData, referringDoctor: e.target.value })}
+                          className="mt-2 h-10 text-base"
+                          placeholder="Ej: Dr. Juan Pérez"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="whoRecommended" className="text-base font-semibold text-gray-700">
+                          Quién le recomendó nuestro centro:
+                        </Label>
+                        <Input
+                          id="whoRecommended"
+                          value={referralData.whoRecommended}
+                          onChange={(e) => setReferralData({ ...referralData, whoRecommended: e.target.value })}
+                          className="mt-2 h-10 text-base"
+                          placeholder="Ej: Amigo, familiar, otro médico, etc."
+                        />
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          onClick={() => {
+                            setShowEditReferral(false);
+                            // Restaurar valores originales
+                            if (selectedPatient) {
+                              setReferralData({
+                                referringDoctor: selectedPatient.referringDoctor || '',
+                                whoRecommended: selectedPatient.whoRecommended || ''
+                              });
+                            }
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={handleSaveReferralData}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Guardar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <ClinicalRow 
+                        label="Médico que refiere al paciente" 
+                        value={selectedPatient.referringDoctor || 'No especificado'} 
+                      />
+                      <ClinicalRow 
+                        label="Quién le recomendó nuestro centro" 
+                        value={selectedPatient.whoRecommended || 'No especificado'} 
+                      />
+                      {selectedPatient.referralDataLastModified && (
+                        <p className="text-xs text-gray-400 opacity-60 mt-2 italic">
+                          Última modificación: {selectedPatient.referralDataLastModified.toLocaleDateString('es-ES', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
               </div>  
             </CardContent>
@@ -533,30 +793,53 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                       key={record.id}
                       className="bg-white p-3 rounded-xl border-2 border-gray-200"
                     >
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <p className="text-xs text-gray-600">Fecha</p>
-                          <p className="font-bold">
-                            {new Date(record.date).toLocaleDateString('es-ES')}
-                          </p>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-xs text-gray-600">Fecha</p>
+                            <p className="font-bold text-base">
+                              {new Date(record.date).toLocaleDateString('es-ES', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-600">Nivel</p>
+                            <p 
+                              className="font-bold text-lg"
+                              style={{ color: getPainColor(record.painLevel) }}
+                            >
+                              {record.painLevel}/10
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-600">Ubicación del dolor</p>
+                            <p className="font-bold text-base">{record.location}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-600">Tipo de dolor</p>
+                            <p className="font-bold text-base">{record.type}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Nivel</p>
-                          <p 
-                            className="font-bold text-lg"
-                            style={{ color: getPainColor(record.painLevel) }}
-                          >
-                            {record.painLevel}/10
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Ubicación del dolor</p>
-                          <p className="font-bold">{record.location}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Tipo de dolor</p>
-                          <p className="font-bold">{record.type}</p>
-                        </div>
+                        {record.painDuration && (
+                          <div className="border-t pt-2">
+                            <p className="text-xs text-gray-600">Por cuánto tiempo tiene este dolor</p>
+                            <p className="font-bold text-base">{record.painDuration}</p>
+                          </div>
+                        )}
+                        {record.painCause && (
+                          <div className="border-t pt-2">
+                            <p className="text-xs text-gray-600 mb-1">Causa del dolor</p>
+                            <div className="flex flex-wrap gap-2">
+                              {record.painCause.lesion && <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">Lesión</span>}
+                              {record.painCause.herida && <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">Herida</span>}
+                              {record.painCause.golpe && <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold">Golpe</span>}
+                              {record.painCause.noSabe && <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">No sabe</span>}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

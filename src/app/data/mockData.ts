@@ -12,6 +12,7 @@ export const mockPatients: Patient[] = [
   {
     dni: "12345678",
     name: "María González",
+    password: "1234",
     age: 72,
     gender: "Mujer",
     originPlace: "Cusco",
@@ -29,10 +30,14 @@ export const mockPatients: Patient[] = [
     status: "warning",
     needsAppointment: false,
     caracter: "Agresivo",
+    numberOfChildren: "3",
+    educationLevel: "Secundaria completa",
+    occupation: "Comerciante",
   },
   {
     dni: "87654321",
     name: "Juan Pérez",
+    password: "1234",
     age: 80,
     gender: "Hombre",
     originPlace: "Arequipa",
@@ -50,10 +55,14 @@ export const mockPatients: Patient[] = [
     status: "critical",
     needsAppointment: true,
     caracter: "Impaciente",
+    numberOfChildren: "2",
+    educationLevel: "Primaria completa",
+    occupation: "Agricultor",
   },
   {
     dni: "11223344",
     name: "Ana Martínez",
+    password: "1234",
     age: 67,
     gender: "Mujer",
     originPlace: "Lima",
@@ -68,6 +77,9 @@ export const mockPatients: Patient[] = [
     ],
     status: "stable",
     needsAppointment: false,
+    numberOfChildren: "4",
+    educationLevel: "Superior incompleta",
+    occupation: "Ama de casa",
   },
 ];
 
