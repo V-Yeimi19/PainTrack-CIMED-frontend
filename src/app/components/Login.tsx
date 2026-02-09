@@ -25,14 +25,10 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
 
   const handlePatientLogin = () => {
     const patient = findPatientByDNI(dni);
-    if (patient) {
-      if (patient.password && patient.password !== patientPassword) {
-        setError('DNI o contraseña incorrectos. Prueba con: 12345678 / 1234');
-      } else {
-        onPatientLogin(patient);
-      }
+    if (patient && patient.dni === dni) {
+      onPatientLogin(patient);
     } else {
-      setError('DNI o contraseña incorrectos. Prueba con: 12345678 / 1234');
+      setError('DNI no encontrado. Prueba con: 12345678');
     }
   };
 
@@ -88,17 +84,17 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
 
         {/* Panel derecho - Imagen de fondo */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-purple-900">
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: 'url(/images/medico.jpg)' }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/50 via-white/20 to-transparent"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(210,11%,16%)]/70 via-[hsl(270,81%,56%)]/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(210,11%,16%)]/90 via-[hsl(270,81%,28%)]/75 to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
-            <h2 className="text-4xl font-bold text-white mb-4 text-center">
+            <h2 className="text-4xl font-bold text-white mb-4 text-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               PainTrack CIMED
             </h2>
-            <p className="text-xl text-white/90 text-center max-w-md">
+            <p className="text-xl text-white text-center max-w-md drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               Sistema de Seguimiento y Gestión del Dolor
             </p>
           </div>
@@ -140,7 +136,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               Acceso Paciente
             </h1>
             <p className="text-lg text-gray-600 mb-8 text-center">
-              Ingresa tus credenciales para continuar
+              Ingresa tu DNI para continuar
             </p>
 
             <div className="space-y-6">
@@ -161,44 +157,14 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                       setDni(e.target.value.replace(/\D/g, '').slice(0, 8));
                       setError('');
                     }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && dni.length >= 7) {
+                        handlePatientLogin();
+                      }
+                    }}
                     className="h-14 pl-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
                     maxLength={8}
                   />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="patientPassword" className="text-base font-semibold text-gray-700 mb-2 block">
-                  Contraseña
-                </Label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[hsl(270,81%,56%)] z-10">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <Input
-                    id="patientPassword"
-                    type={showPatientPassword ? 'text' : 'password'}
-                    placeholder="Contraseña"
-                    value={patientPassword}
-                    onChange={(e) => {
-                      setPatientPassword(e.target.value);
-                      setError('');
-                    }}
-                    className="h-14 pl-12 pr-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPatientPassword(!showPatientPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] z-10"
-                  >
-                    {showPatientPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
                 </div>
               </div>
 
@@ -211,7 +177,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               <Button
                 onClick={handlePatientLogin}
                 className="w-full h-14 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0 shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:shadow-none"
-                disabled={dni.length < 7 || !patientPassword}
+                disabled={dni.length < 7}
               >
                 Continuar
               </Button>
@@ -221,17 +187,17 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
 
         {/* Panel derecho - Imagen de fondo */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-purple-900">
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: 'url(/images/paciente.png)' }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/50 via-white/20 to-transparent"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(270,81%,56%)]/70 via-[hsl(270,81%,56%)]/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(270,81%,28%)]/90 via-[hsl(270,81%,28%)]/75 to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
-            <h2 className="text-4xl font-bold text-white mb-4 text-center">
+            <h2 className="text-4xl font-bold text-white mb-4 text-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               PainTrack CIMED
             </h2>
-            <p className="text-xl text-white/90 text-center max-w-md">
+            <p className="text-xl text-white text-center max-w-md drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               Sistema de Seguimiento y Gestión del Dolor
             </p>
           </div>
@@ -349,23 +315,21 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
       </div>
 
       {/* Panel derecho - Imagen de fondo con logo */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+      <div className="hidden lg:flex lg:w-1/2 relative bg-purple-900">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: 'url(/images/medico.jpg)' }}
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/50 via-white/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(210,11%,16%)]/90 via-[hsl(270,81%,28%)]/75 to-transparent"></div>
         <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
-          <div className="mb-8">
-            <img 
-              src="/images/logo-cimed.png" 
-              alt="CIMED Logo" 
-              className="h-32 w-auto object-contain"
-            />
+          <div className="mb-6">
+           
           </div>
-          <h2 className="text-4xl font-bold text-white mb-4 text-center">
+          <h2 className="text-4xl font-bold text-white mb-4 text-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
             PainTrack CIMED
           </h2>
-          <p className="text-xl text-white/90 text-center max-w-md">
+          <p className="text-xl text-white text-center max-w-md drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
             Sistema de Seguimiento y Gestión del Dolor
           </p>
         </div>

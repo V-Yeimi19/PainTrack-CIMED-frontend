@@ -11,6 +11,7 @@ import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activit
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import ClinicalRow from '@/app/components/ui/clinicalRow';
 import { ConsultationForm, ConsultationData } from './ConsultationForm';
+import BodyHeatmap from './BodyHeatmap';
 
 interface DoctorDashboardProps {
   doctor: Doctor;
@@ -20,6 +21,7 @@ interface DoctorDashboardProps {
 export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   const [selectedPatientDNI, setSelectedPatientDNI] = useState<string | null>(null);
   const [showConsultationForm, setShowConsultationForm] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<{ name: string; records: any[] } | null>(null);
   const [patients, setPatients] = useState(() => {
     // Cargar pacientes desde localStorage si existen
     const storedPatients = localStorage.getItem('patients');
@@ -51,11 +53,14 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
     ? getPatientRecords(selectedPatientDNI)
     : [];
 
-  const getPainColor = (level: number) => {
-    if (level <= 2) return '#22c55e'; // green
-    if (level <= 5) return '#eab308'; // yellow
-    if (level <= 7) return '#f97316'; // orange
-    return '#ef4444'; // red
+  const getPainColor = (value: number) => {
+  // value: 0–1
+  if (value >= 8) return "#aa0303ff";
+  if (value >= 7) return "#ff0000";
+  if (value >= 5) return "#ff7a00";
+  if (value >= 3) return "#ffd000";
+  if (value > 0) return "#00ca22ff";
+  return "#e5e7eb";
   };
 
   const getPatientStatus = (dni: string) => {
@@ -81,7 +86,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   const getStatusColor = (status: string) => {
     if (status === 'critical') return 'bg-red-500';
     if (status === 'warning') return 'bg-yellow-500';
-    return 'bg-green-500';
+    return 'bg-blue-500';
   };
 
   const getStatusText = (status: string) => {
@@ -184,6 +189,29 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
 
   const stats = selectedPatient ? getPatientStats() : null;
 
+  // Función para calcular IMC y su categoría
+  const calculateBMI = (weight: number, height: number) => {
+    const bmi = weight / (height * height);
+    let category = '';
+    let color = '';
+
+    if (bmi < 18.5) {
+      category = 'Bajo peso';
+      color = 'text-blue-600';
+    } else if (bmi < 25) {
+      category = 'Normal';
+      color = 'text-blue-600';
+    } else if (bmi < 30) {
+      category = 'Sobrepeso';
+      color = 'text-yellow-600';
+    } else {
+      category = 'Obesidad';
+      color = 'text-red-600';
+    }
+
+    return { bmi: bmi.toFixed(1), category, color };
+  };
+
   // Inicializar datos de referencia cuando se selecciona un paciente
   useEffect(() => {
     if (selectedPatient) {
@@ -219,17 +247,224 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
     }
   };
 
+  // Función para exportar historial a PDF
+  const exportHistorialPDF = async () => {
+    if (!selectedPatient || selectedRecords.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    try {
+      // Importación dinámica de jsPDF y autoTable
+      const jsPDF = (await import('jspdf')).default;
+      const autoTable = (await import('jspdf-autotable')).default;
+
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      // Función para convertir imagen a base64
+      const getBase64Image = (imgUrl: string): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0);
+            const dataURL = canvas.toDataURL('image/png');
+            resolve(dataURL);
+          };
+          img.onerror = reject;
+          img.src = imgUrl;
+        });
+      };
+
+      // Cargar y agregar logo
+      try {
+        const logoBase64 = await getBase64Image('/images/logo-cimed.png');
+
+        // Encabezado con logo
+        doc.setFillColor(59, 130, 246); // Azul
+        doc.rect(0, 0, pageWidth, 45, 'F');
+
+        // Agregar logo en la esquina superior izquierda
+        doc.addImage(logoBase64, 'PNG', 10, 10, 25, 25);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('HISTORIAL CLÍNICO', pageWidth / 2, 15, { align: 'center' });
+
+        doc.setFontSize(14);
+        doc.text('PainTrack CIMED', pageWidth / 2, 25, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-ES')}`, pageWidth / 2, 37, { align: 'center' });
+      } catch (logoError) {
+        // Si falla la carga del logo, continuar sin él
+        console.error('Error al cargar logo:', logoError);
+
+        doc.setFillColor(59, 130, 246); // Azul
+        doc.rect(0, 0, pageWidth, 40, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('HISTORIAL CLÍNICO', pageWidth / 2, 15, { align: 'center' });
+
+        doc.setFontSize(14);
+        doc.text('PainTrack CIMED', pageWidth / 2, 25, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-ES')}`, pageWidth / 2, 33, { align: 'center' });
+      }
+
+      // Información del paciente
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Datos del Paciente', 14, 52);
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      const bmiData = calculateBMI(selectedPatient.weight, selectedPatient.height);
+
+      const patientInfo = [
+        ['Nombre:', selectedPatient.name],
+        ['DNI:', selectedPatient.dni],
+        ['Edad:', `${selectedPatient.age} años`],
+        ['Sexo:', selectedPatient.gender],
+        ['Peso:', `${selectedPatient.weight} kg`],
+      ['Talla:', `${selectedPatient.height} m`],
+      ['IMC:', `${bmiData.bmi} (${bmiData.category})`],
+      ['Ocupación:', selectedPatient.occupation || 'No especificado'],
+      ['Idioma:', selectedPatient.nativeLanguage.join(', ')],
+    ];
+
+      if (selectedPatient.referringDoctor) {
+        patientInfo.push(['Médico Referente:', selectedPatient.referringDoctor]);
+      }
+      if (selectedPatient.whoRecommended) {
+        patientInfo.push(['Recomendado por:', selectedPatient.whoRecommended]);
+      }
+
+      autoTable(doc, {
+        startY: 57,
+        body: patientInfo,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 2 },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 50 },
+          1: { cellWidth: 'auto' }
+        }
+      });
+
+      // Estadísticas
+      const finalY = (doc as any).lastAutoTable.finalY || 57;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumen Estadístico', 14, finalY + 15);
+
+    if (stats) {
+      const statsInfo = [
+        ['Dolor Promedio:', `${stats.avgPain}/10`],
+        ['Dolor Máximo:', `${stats.maxPain}/10`],
+        ['Dolor Mínimo:', `${stats.minPain}/10`],
+        ['Ubicación más afectada:', stats.mostAffectedLocation],
+        ['Tipo de dolor más frecuente:', stats.mostFrequentType],
+        ['Total de registros:', `${selectedRecords.length}`],
+      ];
+
+      autoTable(doc, {
+        startY: finalY + 20,
+        body: statsInfo,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 2 },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 70 },
+          1: { cellWidth: 'auto' }
+        }
+      });
+    }
+
+    // Historial de registros
+    const historyStartY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Historial de Registros', 14, historyStartY);
+
+    const tableData = selectedRecords.map(record => [
+      new Date(record.date).toLocaleDateString('es-ES'),
+      record.painLevel.toString(),
+      record.location,
+      record.type,
+      record.notes || '-'
+    ]);
+
+    autoTable(doc, {
+      startY: historyStartY + 5,
+      head: [['Fecha', 'Nivel', 'Ubicación', 'Tipo', 'Notas']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 10
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 15, halign: 'center' },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 'auto' }
+      }
+    });
+
+    // Pie de página
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+      doc.text(
+        `Atendido por: ${doctor.name}`,
+        14,
+        doc.internal.pageSize.getHeight() - 10
+      );
+    }
+
+      // Guardar PDF
+      doc.save(`Historial_${selectedPatient.name}_${selectedPatient.dni}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`);
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar el PDF. Por favor, intenta nuevamente.');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       {/* Header fijo */}
       <div className="bg-white shadow-lg px-4 sm:px-6 py-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="bg-green-600 p-2 rounded-lg">
+            <div className="bg-blue-600 p-2 rounded-lg">
               <Stethoscope className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-green-900">PainTrack CIMED</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-blue-900">PainTrack CIMED</h2>
               <p className="text-xs sm:text-sm text-gray-600">{doctor.name}</p>
             </div>
           </div>
@@ -257,13 +492,13 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
 
         {/* Resumen rápido */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <Card className="shadow-lg border-2 border-green-300">
+          <Card className="shadow-lg border-2 border-blue-300">
             <CardContent className="p-3 sm:p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-green-500"></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-blue-500"></div>
                 <p className="text-xs sm:text-sm font-bold text-gray-700">Estables</p>
               </div>
-              <p className="text-2xl sm:text-4xl font-bold text-green-600">{stableCount}</p>
+              <p className="text-2xl sm:text-4xl font-bold text-blue-600">{stableCount}</p>
             </CardContent>
           </Card>
 
@@ -291,7 +526,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
         {/* Lista de pacientes */}
         <Card className="shadow-xl mb-4 sm:mb-6">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-green-900 flex items-center gap-2">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-blue-900 flex items-center gap-2">
               <User className="w-5 h-5 sm:w-6 sm:h-6" />
               Pacientes ({mockPatients.length})
             </CardTitle>
@@ -310,8 +545,8 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     onClick={() => setSelectedPatientDNI(patient.dni)}
                     className={`w-full p-3 sm:p-4 rounded-xl border-2 transition-all text-left ${
                       selectedPatientDNI === patient.dni 
-                        ? 'bg-green-100 border-green-500 shadow-lg' 
-                        : 'bg-white border-gray-200 hover:border-green-300'
+                        ? 'bg-blue-100 border-blue-500 shadow-lg' 
+                        : 'bg-white border-gray-200 hover:border-blue-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -420,11 +655,11 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
         {selectedPatient && stats && !showConsultationForm ? (
           <div className="space-y-4 sm:space-y-6">
             {/* Botón para registrar nuevo dolor */}
-            <Card className="shadow-xl bg-gradient-to-r from-green-50 to-green-100">
+            <Card className="shadow-xl bg-gradient-to-r from-blue-50 to-blue-100">
               <CardContent className="p-4">
                 <Button
                   onClick={() => setShowConsultationForm(true)}
-                  className="w-full h-16 text-xl font-bold bg-green-600 hover:bg-green-700 shadow-lg"
+                  className="w-full h-16 text-xl font-bold bg-blue-600 hover:bg-blue-700 shadow-lg"
                 >
                   <FileText className="w-6 h-6 mr-2" />
                   Registrar Nuevo Dolor
@@ -435,7 +670,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             {/* Información básica */}
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-green-900 flex items-center justify-between">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-blue-900 flex items-center justify-between">
                   <span className="truncate">Ficha Clínica del Paciente: {selectedPatient.name}</span>
                   <Badge className={`${getStatusColor(getPatientStatus(selectedPatient.dni))} text-white text-xs sm:text-sm px-2 sm:px-3 py-1 flex-shrink-0 ml-2`}>
                     {getStatusText(getPatientStatus(selectedPatient.dni))}
@@ -464,6 +699,13 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     <ClinicalRow label="Edad" value={`${selectedPatient.age} años`} />
                     <ClinicalRow label="Idioma / Lengua originaria" value={selectedPatient.nativeLanguage.join(', ')} />
                     <ClinicalRow label="Talla" value={`${selectedPatient.height} m`} />
+                    <ClinicalRow
+                      label="IMC"
+                      value={(() => {
+                        const bmiData = calculateBMI(selectedPatient.weight, selectedPatient.height);
+                        return `${bmiData.bmi} (${bmiData.category})`;
+                      })()}
+                    />
                     <ClinicalRow label="Ocupación" value={selectedPatient.occupation || 'No especificado'} />
                   </div>
 
@@ -526,7 +768,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                 {/* ===== SECCIÓN DE REFERENCIA (EDITABLE) ===== */}
                 <div className="border-t mt-6 pt-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg sm:text-xl font-bold text-green-900">Información de Referencia</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-blue-900">Información de Referencia</h3>
                     {!showEditReferral && (
                       <Button
                         onClick={() => setShowEditReferral(true)}
@@ -589,7 +831,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                         <Button
                           onClick={handleSaveReferralData}
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-blue-600 hover:bg-blue-700"
                         >
                           <Save className="w-4 h-4 mr-2" />
                           Guardar
@@ -628,7 +870,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             {/* Estadísticas clave */}
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl font-bold text-green-900 flex items-center gap-2">
+                <CardTitle className="text-lg sm:text-xl font-bold text-blue-900 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
                   Métricas Clínicas
                 </CardTitle>
@@ -647,26 +889,26 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     <p className="text-xs text-gray-500">/ 10</p>
                   </div>
                   
-                  <div className="bg-green-50 p-3 rounded-xl text-center">
+                  <div className="bg-blue-50 p-3 rounded-xl text-center">
                     <p className="text-xs text-gray-600 mb-1">Mínimo</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-green-700">{stats.minPain}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-700">{stats.minPain}</p>
                     <p className="text-xs text-gray-500">/ 10</p>
                   </div>
                   
                   <div className={`p-3 rounded-xl text-center ${
-                    stats.trend > 0 ? 'bg-red-50' : stats.trend < 0 ? 'bg-green-50' : 'bg-gray-50'
+                    stats.trend > 0 ? 'bg-red-50' : stats.trend < 0 ? 'bg-blue-50' : 'bg-gray-50'
                   }`}>
                     <p className="text-xs text-gray-600 mb-1">Tendencia</p>
                     <div className="flex items-center justify-center gap-1">
                       {stats.trend > 0 ? (
                         <TrendingUp className="w-5 h-5 text-red-600" />
                       ) : stats.trend < 0 ? (
-                        <TrendingDown className="w-5 h-5 text-green-600" />
+                        <TrendingDown className="w-5 h-5 text-blue-600" />
                       ) : (
                         <Activity className="w-5 h-5 text-gray-600" />
                       )}
                       <p className={`text-2xl sm:text-3xl font-bold ${
-                        stats.trend > 0 ? 'text-red-700' : stats.trend < 0 ? 'text-green-700' : 'text-gray-700'
+                        stats.trend > 0 ? 'text-red-700' : stats.trend < 0 ? 'text-blue-700' : 'text-gray-700'
                       }`}>
                         {stats.trend > 0 ? '+' : ''}{stats.trend.toFixed(1)}
                       </p>
@@ -707,7 +949,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             {/* Gráfico de evolución */}
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl font-bold text-green-900 flex items-center gap-2">
+                <CardTitle className="text-lg sm:text-xl font-bold text-blue-900 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
                   Evolución del Dolor
                 </CardTitle>
@@ -747,34 +989,131 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
               </CardContent>
             </Card>
 
-            {/* Distribución por ubicación */}
+            {/* Mapa de calor corporal - Distribución por ubicación */}
             {stats.locationData.length > 0 && (
               <Card className="shadow-xl">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg sm:text-xl font-bold text-green-900">
-                    Distribución por Ubicación
+                  <CardTitle className="text-lg sm:text-xl font-bold text-blue-900 flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Mapa de Calor Corporal - Distribución por Ubicación
                   </CardTitle>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Las zonas más rojas indican mayor frecuencia de dolor. Haz clic en una zona para ver los detalles.
+                  </p>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={stats.locationData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        style={{ fontSize: '10px' }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Mapa de calor */}
+                    <div className="flex-1">
+                      <BodyHeatmap
+                        records={selectedRecords}
+                        onZoneClick={(zoneName, zoneRecords) => {
+                          if (zoneRecords.length > 0) {
+                            setSelectedZone({ name: zoneName, records: zoneRecords });
+                          }
+                        }}
                       />
-                      <YAxis style={{ fontSize: '12px' }} />
-                      <Tooltip />
-                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                        {stats.locationData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getPainColor(5 + index)} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                    </div>
+
+                    {/* Leyenda lateral con información de la zona seleccionada */}
+                    <div className="lg:w-80 space-y-4">
+                      {/* Leyenda de colores */}
+                      <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+                        <p className="text-sm font-bold text-gray-700 mb-3">Leyenda de intensidad:</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: '#e5e7eb' }}></div>
+                            <span className="text-xs">Sin datos</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: '#7bd389' }}></div>
+                            <span className="text-xs">Baja intensidad</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: '#ffd000' }}></div>
+                            <span className="text-xs">Media intensidad</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: '#ff7a00' }}></div>
+                            <span className="text-xs">Alta intensidad</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: '#ff0000' }}></div>
+                            <span className="text-xs">Muy alta intensidad</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: '#8b0000' }}></div>
+                            <span className="text-xs">Intensidad crítica</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Información de zona seleccionada */}
+                      {selectedZone ? (
+                        <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-base font-bold text-blue-900 flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              Zona Seleccionada
+                            </h4>
+                            <button
+                              onClick={() => setSelectedZone(null)}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-xs text-gray-600 mb-1">Ubicación</p>
+                              <p className="text-base font-bold text-gray-900">{selectedZone.name}</p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-xs text-gray-600 mb-1">Total de registros</p>
+                              <p className="text-2xl font-bold text-blue-700">{selectedZone.records.length}</p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-xs text-gray-600 mb-1">Nivel promedio de dolor</p>
+                              <p className="text-2xl font-bold" style={{
+                                color: getPainColor(
+                                  Math.round(selectedZone.records.reduce((sum, r) => sum + r.painLevel, 0) / selectedZone.records.length)
+                                )
+                              }}>
+                                {(selectedZone.records.reduce((sum, r) => sum + r.painLevel, 0) / selectedZone.records.length).toFixed(1)}/10
+                              </p>
+                            </div>
+
+                            {/* Últimos 3 registros de esta zona */}
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-xs text-gray-600 mb-2">Últimos registros</p>
+                              <div className="space-y-2">
+                                {selectedZone.records.slice(-3).reverse().map((record, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-xs border-b border-gray-100 pb-1">
+                                    <span className="text-gray-600">
+                                      {new Date(record.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                                    </span>
+                                    <span className="font-bold" style={{ color: getPainColor(record.painLevel) }}>
+                                      {record.painLevel}/10
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                          <MapPin className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">
+                            Haz clic en una zona del mapa para ver los detalles
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -782,7 +1121,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             {/* Historial reciente */}
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl font-bold text-green-900">
+                <CardTitle className="text-lg sm:text-xl font-bold text-blue-900">
                   Últimos 5 Registros
                 </CardTitle>
               </CardHeader>
@@ -852,7 +1191,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
               <Button className="h-16 text-lg font-bold bg-purple-600 hover:bg-purple-700">
                 RECOMENDAR CITA
               </Button>
-              <Button variant="outline" className="h-16 text-lg font-bold">
+              <Button onClick={exportHistorialPDF} variant="outline" className="h-16 text-lg font-bold">
                 EXPORTAR HISTORIAL
               </Button>
             </div>
