@@ -225,9 +225,11 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
       <div className="bg-white shadow-lg px-4 sm:px-6 py-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="bg-green-600 p-2 rounded-lg">
-              <Stethoscope className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
-            </div>
+            <img 
+              src="/images/logo-cimed.png" 
+              alt="PainTrack CIMED Logo" 
+              className="h-10 sm:h-12 w-auto object-contain"
+            />
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-green-900">PainTrack CIMED</h2>
               <p className="text-xs sm:text-sm text-gray-600">{doctor.name}</p>

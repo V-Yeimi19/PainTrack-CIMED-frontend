@@ -1,19 +1,23 @@
+import { useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import { Patient } from '@/app/types';
+import { Patient, MedicationRecord } from '@/app/types';
 import { getPatientRecords } from '@/app/data/mockData';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Dot, Label } from 'recharts';
 import { Calendar, Plus, LogOut, AlertTriangle, CalendarCheck, Activity, User } from 'lucide-react';
+import { MedicationsSection } from './MedicationsSection';
+import { speakNatural } from '@/app/utils/speech';
 
 interface PatientDashboardProps {
   patient: Patient;
   onNewRecord: () => void;
+  onRegisterPain?: () => void;
   onLogout: () => void;
   onViewProfile?: () => void;
 }
 
-export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile }: PatientDashboardProps) {
+export function PatientDashboard({ patient, onNewRecord, onRegisterPain, onLogout, onViewProfile }: PatientDashboardProps) {
   // Validar que patient existe
   if (!patient) {
     return (
@@ -26,6 +30,19 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
   }
 
   const records = getPatientRecords(patient.dni);
+  
+  // Leer texto inicial cuando aparece el dashboard
+  useEffect(() => {
+    const initialText = `Hola, ${patient.name}. ¿Cómo te sientes hoy? Puedes registrar tu dolor, en el botón morado "Registrar cómo me siento". No olvides registrar, si es que tomaste tu medicamento al dar click en registrar medicamentos.`;
+    // Aumentar el delay para asegurar que el componente esté completamente montado
+    const timer = setTimeout(() => {
+      speakNatural(initialText);
+    }, 300);
+    
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [patient.name]);
   
   // Obtener últimos 7 días
   const lastWeekRecords = records.slice(-7).map(record => ({
@@ -43,7 +60,7 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
   const getFeelingSummary = () => {
     if (records.length === 0) return { text: 'No tienes registros aún', emoji: '📝' };
     const lastRecord = records[records.length - 1];
-    if (lastRecord.painLevel <= 2) return { text: 'Te sientes bien', emoji: '😊' };
+    if (lastRecord.painLevel <= 2) return { text: 'Tu registro nos ayuda a acompañarte mejor.', emoji: '😊' };
     if (lastRecord.painLevel <= 5) return { text: 'Tienes molestias leves', emoji: '😐' };
     if (lastRecord.painLevel <= 7) return { text: 'Sientes dolor moderado', emoji: '😣' };
     return { text: 'Tienes dolor intenso', emoji: '😖' };
@@ -70,42 +87,54 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
   const daysSinceLastRecord = daysWithoutRecord();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header con logo */}
-        <div className="flex justify-between items-start mb-6 sm:mb-8">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Encabezado fijo */}
+      <div className="bg-white shadow-md sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex justify-between items-center">
+            {/* Logo a la izquierda */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <img 
+                src="/images/logo-cimed.png" 
+                alt="PainTrack CIMED Logo" 
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
+              <div className="flex flex-col">
+                <h2 className="text-xl sm:text-2xl font-bold text-[hsl(270,81%,40%)] leading-tight">PainTrack</h2>
+                <h3 className="text-sm sm:text-base text-[hsl(270,81%,56%)] leading-tight">CIMED</h3>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-blue-900">PainTrack CIMED</h2>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-bold text-blue-900 mb-2">
-              Hola, {patient.name}
-            </h1>
-            <p className="text-xl sm:text-3xl text-gray-700">¿Cómo te sientes hoy?</p>
-          </div>
-          <div className="flex flex-col gap-2">
-            {onViewProfile && (
+            {/* Botones a la derecha */}
+            <div className="flex flex-row gap-2">
+              {onViewProfile && (
+                <Button
+                  onClick={onViewProfile}
+                  className="h-10 sm:h-12 px-3 sm:px-6 text-sm sm:text-base font-bold bg-[hsl(270,70%,60%)] hover:bg-[hsl(270,70%,55%)] text-white border-0"
+                >
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                  PERFIL
+                </Button>
+              )}
               <Button
-                onClick={onViewProfile}
-                variant="outline"
-                className="h-12 sm:h-16 px-4 sm:px-8 text-base sm:text-xl font-bold"
+                onClick={onLogout}
+                className="h-10 sm:h-12 px-3 sm:px-6 text-sm sm:text-base font-bold bg-[hsl(0,70%,60%)] hover:bg-[hsl(0,70%,55%)] text-white border-0"
               >
-                <User className="w-4 h-4 sm:w-6 sm:h-6 mr-2" />
-                PERFIL
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                SALIR
               </Button>
-            )}
-            <Button
-              onClick={onLogout}
-              variant="outline"
-              className="h-12 sm:h-16 px-4 sm:px-8 text-base sm:text-xl font-bold"
-            >
-              <LogOut className="w-4 h-4 sm:w-6 sm:h-6 mr-2" />
-              SALIR
-            </Button>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+        {/* Saludo */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-5xl font-bold text-[hsl(270,81%,40%)] mb-2">
+            Hola, {patient.name}
+          </h1>
+          <p className="text-xl sm:text-3xl text-gray-700">¿Cómo te sientes hoy?</p>
         </div>
 
         {/* Alertas y notificaciones inteligentes */}
@@ -116,7 +145,7 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
               Tu dolor ha aumentado significativamente. Te recomendamos agendar una cita médica.
             </AlertDescription>
             <Button
-              className="w-full h-16 sm:h-20 text-xl sm:text-2xl font-bold bg-red-600 hover:bg-red-700 shadow-xl"
+              className="w-full h-16 sm:h-40 text-xl sm:text-2xl font-bold bg-red-1 hover:bg-red-700 shadow-x2"
             >
               SOLICITAR CITA
             </Button>
@@ -124,9 +153,9 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
         )}
 
         {daysSinceLastRecord >= 1 && !needsAppointment && (
-          <Alert className="mb-4 sm:mb-6 border-2 border-blue-500 bg-blue-50">
-            <CalendarCheck className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
-            <AlertDescription className="text-lg sm:text-2xl font-semibold text-blue-900 ml-2">
+          <Alert className="mb-4 sm:mb-6 border-2 border-[hsl(270,81%,56%)] bg-[hsl(270,81%,98%)]">
+            <CalendarCheck className="h-6 w-6 sm:h-8 sm:w-8 text-[hsl(270,81%,56%)]" />
+            <AlertDescription className="text-lg sm:text-2xl font-semibold text-[hsl(270,81%,40%)] ml-2">
               {daysSinceLastRecord === 1 
                 ? 'No olvides registrar cómo te sientes hoy.'
                 : `No olvides registrar cómo te sientes hoy. Hace ${daysSinceLastRecord} días que no registras tu dolor.`}
@@ -135,40 +164,84 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-2xl sm:text-3xl font-bold text-blue-900">
-                Estado Actual
+          <Card className="shadow-xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-[hsl(270,81%,96%)] to-[hsl(270,81%,98%)] pb-4">
+              <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[hsl(270,81%,40%)] text-center">
+                <span className="block sm:hidden">
+                  ¿Quieres contarnos cómo<br />te sientes hoy?
+                </span>
+                <span className="hidden sm:inline">
+                  ¿Quieres contarnos cómo te sientes hoy?
+                </span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-6 sm:py-8">
-                <div className="text-6xl sm:text-7xl mb-3 sm:mb-4">{feeling.emoji}</div>
-                <p className="text-2xl sm:text-4xl font-bold text-gray-800 mb-4 sm:mb-6">{feeling.text}</p>
-                <Button
-                  onClick={onNewRecord}
-                  className="w-full h-20 sm:h-24 text-2xl sm:text-3xl font-bold bg-blue-600 hover:bg-blue-700 mt-2 sm:mt-4"
-                >
-                  <Plus className="w-8 h-8 sm:w-10 sm:h-10 mr-2 sm:mr-3" />
-                  NUEVO REGISTRO
-                </Button>
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-row items-start gap-3 sm:gap-4 lg:gap-8">
+                {/* Contenido izquierdo */}
+                <div className="flex-1 flex flex-col justify-between min-w-0 overflow-visible">
+                  {/* Texto del estado */}
+                  <div className="text-left mb-6 sm:mb-8 lg:mb-10">
+                    <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
+                      {feeling.text}
+                    </p>
+                    {records.length > 0 && (
+                      <p className="text-lg sm:text-lg lg:text-xl text-gray-600">
+                        Último registro: {new Date(records[records.length - 1].date).toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'long'
+                        })}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Botón de nuevo registro */}
+                  <Button
+                    onClick={onNewRecord}
+                    className="w-full h-14 sm:h-16 lg:h-20 px-4 sm:px-6 lg:px-8 text-lg sm:text-xl lg:text-lg font-bold bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)]"
+                  >
+                    Registrar cómo me siento
+                  </Button>
+                </div>
+                
+                {/* Imagen de dolor crónico - lado derecho */}
+                <div className="w-32 sm:w-40 lg:w-48 flex-shrink-0 flex items-center justify-center">
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg w-full h-[200px] sm:h-[240px] lg:h-[360px]">
+                    <img 
+                      src="/images/dolor-cronico.jpg" 
+                      alt="Estado de dolor"
+                      className="w-full h-full object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Sección de Medicamentos */}
+          {patient.medications && patient.medications.length > 0 && (
+            <MedicationsSection
+                medications={patient.medications}
+                onMedicationRecord={(record: MedicationRecord) => {
+                  // Aquí puedes guardar el registro de medicamento
+                  console.log('Medication record:', record);
+                }}
+              />
+          )}
+
           {patient.nextAppointment && (
-            <Card className="shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl sm:text-3xl font-bold text-purple-900 flex items-center gap-2 sm:gap-3">
+            <Card className="shadow-xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 pb-4">
+                <CardTitle className="text-2xl sm:text-3xl font-bold text-green-700 flex items-center gap-2 sm:gap-3">
                   <Calendar className="w-8 h-8 sm:w-10 sm:h-10" />
                   Próxima Cita
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 lg:p-8">
                 <div className="text-center py-6 sm:py-8">
                   <p className="text-xl sm:text-2xl text-gray-600 mb-3 sm:mb-4">Tu próxima cita es:</p>
-                  <div className="bg-purple-50 p-4 sm:p-6 rounded-xl">
-                    <p className="text-3xl sm:text-4xl font-bold text-purple-700">
+                  <div className="bg-green-50 p-4 sm:p-6 rounded-xl border-2 border-green-100">
+                    <p className="text-3xl sm:text-4xl font-bold text-green-700">
                       {patient.nextAppointment.toLocaleDateString('es-ES', {
                         day: 'numeric',
                         month: 'long',
@@ -181,6 +254,15 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
                       className="w-full h-16 sm:h-20 text-xl sm:text-2xl font-bold bg-purple-600 hover:bg-purple-700 mt-4 sm:mt-6"
                     >
                       SOLICITAR CITA URGENTE
+                    </Button>
+                  )}
+                  {onRegisterPain && (
+                    <Button
+                      onClick={onRegisterPain}
+                      className="w-full h-14 sm:h-16 text-lg sm:text-xl font-semibold bg-green-600 hover:bg-green-700 mt-4 sm:mt-6 shadow-[0_0_20px_rgba(22,163,74,0.6),0_4px_15px_rgba(22,163,74,0.4)] hover:shadow-[0_0_30px_rgba(22,163,74,0.8),0_6px_20px_rgba(22,163,74,0.6)] text-white"
+                    >
+                      <Plus className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+                      REGISTRAR DOLOR PRE-CONSULTA
                     </Button>
                   )}
                 </div>
@@ -198,26 +280,61 @@ export function PatientDashboard({ patient, onNewRecord, onLogout, onViewProfile
           <CardContent>
             {lastWeekRecords.length > 0 ? (
               <ResponsiveContainer width="100%" height={300} className="sm:h-[400px]">
-                <BarChart data={lastWeekRecords}>
+                <LineChart data={lastWeekRecords} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="date" 
                     style={{ fontSize: '18px', fontWeight: 'bold' }}
-                  />
+                  >
+                    <Label value="Días" offset={10} position="bottom" style={{ fontSize: '18px', fontWeight: 'bold' }} />
+                  </XAxis>
                   <YAxis 
                     domain={[0, 10]}
                     style={{ fontSize: '18px', fontWeight: 'bold' }}
-                  />
+                  >
+                    <Label value="Intensidad del dolor" angle={-90} position="left" style={{ fontSize: '18px', fontWeight: 'bold', textAnchor: 'middle' }} />
+                  </YAxis>
                   <Tooltip 
                     contentStyle={{ fontSize: '20px', fontWeight: 'bold' }}
                     labelStyle={{ fontSize: '18px' }}
+                    formatter={(value: any) => [`${value}/10`, 'Intensidad']}
                   />
-                  <Bar dataKey="nivel" radius={[8, 8, 0, 0]}>
-                    {lastWeekRecords.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getPainColor(entry.nivel)} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                  <Line 
+                    type="monotone" 
+                    dataKey="nivel" 
+                    stroke="#cbd5e1" 
+                    strokeWidth={1}
+                    strokeDasharray="5 5"
+                    dot={(props: any) => {
+                      const { cx, cy, payload } = props;
+                      return (
+                        <Dot 
+                          cx={cx} 
+                          cy={cy} 
+                          r={8} 
+                          fill={getPainColor(payload.nivel)}
+                          stroke={getPainColor(payload.nivel)}
+                          strokeWidth={3}
+                        />
+                      );
+                    }}
+                    label={(props: any) => {
+                      const { x, y, value } = props;
+                      return (
+                        <text 
+                          x={x} 
+                          y={y - 15} 
+                          fill={getPainColor(value)} 
+                          fontSize={18} 
+                          fontWeight="bold" 
+                          textAnchor="middle"
+                        >
+                          {value}
+                        </text>
+                      );
+                    }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="text-center py-12 sm:py-16">

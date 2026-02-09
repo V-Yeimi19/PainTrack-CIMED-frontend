@@ -1,4 +1,4 @@
-import { Patient, Doctor, PainRecord } from "@/app/types";
+import { Patient, Doctor, PainRecord, Medication } from "@/app/types";
 
 export const mockDoctors: Doctor[] = [
   {
@@ -33,6 +33,11 @@ export const mockPatients: Patient[] = [
     numberOfChildren: "3",
     educationLevel: "Secundaria completa",
     occupation: "Comerciante",
+    treatedBodyParts: ["Rodillas", "Espalda"], // Partes tratadas en consulta
+    medications: [
+      { id: "med1", name: "Paracetamol", dosage: "500 mg", active: true },
+      { id: "med2", name: "Naproxeno", dosage: "500 mg", active: true },
+    ],
   },
   {
     dni: "87654321",
@@ -58,6 +63,10 @@ export const mockPatients: Patient[] = [
     numberOfChildren: "2",
     educationLevel: "Primaria completa",
     occupation: "Agricultor",
+    treatedBodyParts: ["Espalda", "Piernas"], // Partes tratadas en consulta
+    medications: [
+      { id: "med3", name: "Ibuprofeno", dosage: "400 mg", active: true },
+    ],
   },
   {
     dni: "11223344",
@@ -80,6 +89,10 @@ export const mockPatients: Patient[] = [
     numberOfChildren: "4",
     educationLevel: "Superior incompleta",
     occupation: "Ama de casa",
+    treatedBodyParts: ["Cabeza", "Pecho"], // Partes tratadas en consulta
+    medications: [
+      { id: "med4", name: "Paracetamol", dosage: "500 mg", active: true },
+    ],
   },
 ];
 

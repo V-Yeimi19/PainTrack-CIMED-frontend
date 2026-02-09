@@ -74,7 +74,12 @@ export function Confirmation({ painLevel, location, types, comment, onSave, onEx
             <div className="bg-blue-50 p-6 rounded-2xl text-center">
               <p className="text-lg text-gray-600 mb-2">Nivel de dolor</p>
               <div className="text-6xl mb-2">{getPainEmoji(painLevel)}</div>
-              <p className={`text-5xl font-bold ${getPainColor(painLevel)}`}>{painLevel}/10</p>
+              <p className={`text-3xl font-bold ${getPainColor(painLevel)}`}>
+                {painLevel <= 2 ? 'No me duele' :
+                 painLevel <= 5 ? 'Me duele un poco' :
+                 painLevel <= 7 ? 'Me duele bastante' :
+                 'Me duele mucho'}
+              </p>
             </div>
             
             <div className="bg-purple-50 p-6 rounded-2xl text-center">

@@ -5,6 +5,8 @@ import { PainLevelSelector } from '@/app/components/patient/PainLevelSelector';
 import { PainLocationSelector } from '@/app/components/patient/PainLocationSelector';
 import { PainTypeSelector } from '@/app/components/patient/PainTypeSelector';
 import { Confirmation } from '@/app/components/patient/Confirmation';
+import { ThankYou } from '@/app/components/patient/ThankYou';
+import { RegistrationSummary } from '@/app/components/patient/RegistrationSummary';
 import { PatientDashboard } from '@/app/components/patient/PatientDashboard';
 import { PatientProfile } from '@/app/components/patient/PatientProfile';
 import { DoctorDashboard } from '@/app/components/doctor/DoctorDashboard';
@@ -71,10 +73,12 @@ type AppState =
   | { screen: 'patient-dashboard'; patient: Patient }
   | { screen: 'patient-profile'; patient: Patient }
   | { screen: 'patient-welcome'; patient: Patient }
-  | { screen: 'patient-pain-location'; patient: Patient; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[] }
-  | { screen: 'patient-pain-level'; patient: Patient; location: PainLocation; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[] }
-  | { screen: 'patient-pain-type'; patient: Patient; location: PainLocation; painLevel: PainLevel; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[] }
+  | { screen: 'patient-pain-location'; patient: Patient; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[]; isNewRecord?: boolean; remainingTreatedParts?: PainLocation[] }
+  | { screen: 'patient-pain-level'; patient: Patient; location: PainLocation; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[]; isNewRecord?: boolean; remainingTreatedParts?: PainLocation[] }
+  | { screen: 'patient-pain-type'; patient: Patient; location: PainLocation; painLevel: PainLevel; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[]; isNewRecord?: boolean; remainingTreatedParts?: PainLocation[] }
   | { screen: 'patient-confirmation'; patient: Patient; painLevel: PainLevel; location: PainLocation; types: PainType[]; comment?: string; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[] }
+  | { screen: 'patient-thank-you'; patient: Patient; remainingTreatedParts?: PainLocation[] }
+  | { screen: 'patient-registration-summary'; patient: Patient; location: PainLocation; painLevel: PainLevel; types: PainType[]; remainingTreatedParts?: PainLocation[] }
   | { screen: 'doctor-dashboard'; doctor: Doctor };
 
 export default function App() {
@@ -96,7 +100,7 @@ export default function App() {
     setState({ screen: 'patient-welcome', patient });
   };
 
-  const handleStart = (patient: Patient) => {
+  const handleRegisterPain = (patient: Patient) => {
     // Cargar puntos y ubicaciones desde localStorage
     const savedCustomPoints = loadCustomPointsFromStorage();
     const savedLocations = loadRegisteredLocationsFromStorage();
@@ -108,20 +112,34 @@ export default function App() {
     });
   };
 
-  const handleLocationSelect = (patient: Patient, location: PainLocation, registeredLocations: PainLocation[] = [], customPoints: CustomPoint[] = [], updatedCustomPoints?: CustomPoint[]) => {
+  const handleStart = (patient: Patient) => {
+    // Cargar puntos y ubicaciones desde localStorage
+    const savedCustomPoints = loadCustomPointsFromStorage();
+    const savedLocations = loadRegisteredLocationsFromStorage();
+    setState({ 
+      screen: 'patient-pain-location', 
+      patient, 
+      registeredLocations: savedLocations, 
+      customPoints: savedCustomPoints,
+      isNewRecord: true, // Marcar como nuevo registro
+      remainingTreatedParts: patient.treatedBodyParts ? [...patient.treatedBodyParts] : undefined
+    });
+  };
+
+  const handleLocationSelect = (patient: Patient, location: PainLocation, registeredLocations: PainLocation[] = [], customPoints: CustomPoint[] = [], updatedCustomPoints?: CustomPoint[], isNewRecord?: boolean, remainingTreatedParts?: PainLocation[]) => {
     // Usar los puntos actualizados si se proporcionan, sino usar los del estado
     const pointsToUse = updatedCustomPoints || customPoints;
     // Guardar en localStorage
     saveCustomPointsToStorage(pointsToUse);
     saveRegisteredLocationsToStorage(registeredLocations);
-    setState({ screen: 'patient-pain-level', patient, location, registeredLocations, customPoints: pointsToUse });
+    setState({ screen: 'patient-pain-level', patient, location, registeredLocations, customPoints: pointsToUse, isNewRecord, remainingTreatedParts });
   };
 
-  const handleLevelSelect = (patient: Patient, location: PainLocation, painLevel: PainLevel, registeredLocations: PainLocation[] = [], customPoints: CustomPoint[] = []) => {
+  const handleLevelSelect = (patient: Patient, location: PainLocation, painLevel: PainLevel, registeredLocations: PainLocation[] = [], customPoints: CustomPoint[] = [], isNewRecord?: boolean, remainingTreatedParts?: PainLocation[]) => {
     // Guardar en localStorage
     saveCustomPointsToStorage(customPoints);
     saveRegisteredLocationsToStorage(registeredLocations);
-    setState({ screen: 'patient-pain-type', patient, location, painLevel, registeredLocations, customPoints });
+    setState({ screen: 'patient-pain-type', patient, location, painLevel, registeredLocations, customPoints, isNewRecord, remainingTreatedParts });
   };
 
   const handleTypeSelect = (
@@ -131,12 +149,47 @@ export default function App() {
     types: PainType[],
     registeredLocations: PainLocation[] = [],
     customPoints: CustomPoint[] = [],
-    comment?: string
+    otherText?: string,
+    isNewRecord?: boolean,
+    remainingTreatedParts?: PainLocation[]
   ) => {
+    // Guardar el registro inmediatamente
+    addPainRecord({
+      patientDNI: patient.dni,
+      date: new Date(),
+      painLevel,
+      location,
+      type: types[0] || 'Molesto', // Usar el primer tipo o un valor por defecto
+    });
+    
+    // Agregar la ubicación a la lista de registradas
+    const updatedLocations = [...registeredLocations, location];
+    
+    // Si es "Otro", marcar todos los puntos pendientes como confirmados
+    let updatedCustomPoints = customPoints;
+    if (location === 'Otro') {
+      updatedCustomPoints = customPoints.map(p => ({ ...p, confirmed: true }));
+    }
+    
+    // Si es nuevo registro y hay partes tratadas, eliminar la parte registrada de la lista
+    let updatedRemainingTreatedParts = remainingTreatedParts;
+    if (isNewRecord && remainingTreatedParts && remainingTreatedParts.length > 0) {
+      updatedRemainingTreatedParts = remainingTreatedParts.filter(part => part !== location);
+    }
+    
     // Guardar en localStorage
-    saveCustomPointsToStorage(customPoints);
-    saveRegisteredLocationsToStorage(registeredLocations);
-    setState({ screen: 'patient-confirmation', patient, location, painLevel, types, comment, registeredLocations, customPoints });
+    saveCustomPointsToStorage(updatedCustomPoints);
+    saveRegisteredLocationsToStorage(updatedLocations);
+    
+    // Mostrar resumen del registro después de completar un registro
+    setState({ 
+      screen: 'patient-registration-summary', 
+      patient,
+      location,
+      painLevel,
+      types,
+      remainingTreatedParts: updatedRemainingTreatedParts
+    });
   };
 
   const handleSaveRecord = (
@@ -185,6 +238,7 @@ export default function App() {
       <PatientDashboard
         patient={state.patient}
         onNewRecord={() => handleNewRecord(state.patient)}
+        onRegisterPain={() => handleRegisterPain(state.patient)}
         onLogout={handleLogout}
         onViewProfile={() => setState({ screen: 'patient-profile', patient: state.patient })}
       />
@@ -201,7 +255,8 @@ export default function App() {
         gender={state.patient.gender === 'Hombre' ? 'hombre' : state.patient.gender === 'Mujer' ? 'mujer' : 'hombre'}
         registeredLocations={state.registeredLocations || []}
         customPoints={state.customPoints || []}
-        onSelect={(location, updatedCustomPoints) => handleLocationSelect(state.patient, location, state.registeredLocations, state.customPoints, updatedCustomPoints)}
+        treatedBodyParts={state.isNewRecord && state.remainingTreatedParts ? state.remainingTreatedParts : undefined}
+        onSelect={(location, updatedCustomPoints) => handleLocationSelect(state.patient, location, state.registeredLocations, state.customPoints, updatedCustomPoints, state.isNewRecord, state.remainingTreatedParts)}
         onCustomPointsChange={(points) => {
           // Guardar en localStorage cuando cambien los puntos
           saveCustomPointsToStorage(points);
@@ -220,12 +275,12 @@ export default function App() {
   if (state.screen === 'patient-pain-level') {
     return (
       <PainLevelSelector
-        onSelect={(level) => handleLevelSelect(state.patient, state.location, level, state.registeredLocations, state.customPoints)}
+        onSelect={(level) => handleLevelSelect(state.patient, state.location, level, state.registeredLocations, state.customPoints, state.isNewRecord, state.remainingTreatedParts)}
         onBack={() => {
           // Guardar al volver
           saveCustomPointsToStorage(state.customPoints || []);
           saveRegisteredLocationsToStorage(state.registeredLocations || []);
-          setState({ screen: 'patient-pain-location', patient: state.patient, registeredLocations: state.registeredLocations, customPoints: state.customPoints });
+          setState({ screen: 'patient-pain-location', patient: state.patient, registeredLocations: state.registeredLocations, customPoints: state.customPoints, isNewRecord: state.isNewRecord, remainingTreatedParts: state.remainingTreatedParts });
         }}
       />
     );
@@ -234,13 +289,60 @@ export default function App() {
   if (state.screen === 'patient-pain-type') {
     return (
       <PainTypeSelector
-        onSelect={(types, comment) => handleTypeSelect(state.patient, state.location, state.painLevel, types, state.registeredLocations, state.customPoints, comment)}
+        onSelect={(types, comment) => handleTypeSelect(state.patient, state.location, state.painLevel, types, state.registeredLocations, state.customPoints, comment, state.isNewRecord, state.remainingTreatedParts)}
         onBack={() => {
           // Guardar al volver
           saveCustomPointsToStorage(state.customPoints || []);
           saveRegisteredLocationsToStorage(state.registeredLocations || []);
-          setState({ screen: 'patient-pain-level', patient: state.patient, location: state.location, registeredLocations: state.registeredLocations, customPoints: state.customPoints });
+          setState({ screen: 'patient-pain-level', patient: state.patient, location: state.location, registeredLocations: state.registeredLocations, customPoints: state.customPoints, isNewRecord: state.isNewRecord, remainingTreatedParts: state.remainingTreatedParts });
         }}
+      />
+    );
+  }
+
+  if (state.screen === 'patient-registration-summary') {
+    // Cargar datos guardados desde localStorage
+    const savedCustomPoints = loadCustomPointsFromStorage();
+    const savedLocations = loadRegisteredLocationsFromStorage();
+    const hasMoreParts = state.remainingTreatedParts && state.remainingTreatedParts.length > 0;
+    
+    return (
+      <RegistrationSummary
+        location={state.location}
+        painLevel={state.painLevel}
+        types={state.types}
+        hasMoreParts={hasMoreParts || false}
+        onContinue={() => {
+          // Volver a la pantalla de selección de ubicación con las partes restantes
+          setState({ 
+            screen: 'patient-pain-location', 
+            patient: state.patient, 
+            registeredLocations: savedLocations, 
+            customPoints: savedCustomPoints,
+            isNewRecord: hasMoreParts,
+            remainingTreatedParts: state.remainingTreatedParts
+          });
+        }}
+        onFinish={() => {
+          // Mostrar mensaje de agradecimiento final cuando ya no hay más partes
+          setState({ 
+            screen: 'patient-thank-you', 
+            patient: state.patient,
+            remainingTreatedParts: []
+          });
+        }}
+      />
+    );
+  }
+
+  if (state.screen === 'patient-thank-you') {
+    return (
+      <ThankYou
+        onContinue={() => {
+          // No debería aparecer este botón en el mensaje final
+        }}
+        onFinish={() => handleFinishRegistration(state.patient)}
+        hasMoreParts={false}
       />
     );
   }

@@ -11,12 +11,17 @@ export type PainLocation =
   | "Otro";
 
 export type PainType =
-  | "Ardor"
+  | "Apretado"
   | "Punzante"
-  | "Fuerte"
-  | "Molesto"
-  | "Constante"
-  | "Intermitente";
+  | "Pulsátil"
+  | "Corriente"
+  | "Quemante"
+  | "Ardor"
+  | "Calambre"
+  | "Cólico"
+  | "Sordo"
+  | "Tirante"
+  | "Otro";
 
 export interface PainRecord {
   id: string;
@@ -59,6 +64,23 @@ export interface Patient {
   whoRecommended?: string;
   referralDataLastModified?: Date; // Fecha de última modificación de los datos de referencia
   conclusivePathology?: string[]; // Patologías concluyentes agregadas después de cada registro de dolor
+  treatedBodyParts?: PainLocation[]; // Partes del cuerpo tratadas en consulta médica
+  medications?: Medication[]; // Medicamentos activos indicados por el médico
+}
+
+export interface Medication {
+  id: string;
+  name: string;
+  dosage: string; // Ej: "500 mg"
+  active: boolean; // Si el medicamento está activo
+}
+
+export interface MedicationRecord {
+  medicationId: string;
+  date: Date;
+  taken: boolean; // Si lo tomó hoy
+  reasonNotTaken?: "Me olvidé" | "Me sentí mal" | "No lo tenía" | "Otro";
+  otherReason?: string; // Si eligió "Otro"
 }
 
 export interface Doctor {
