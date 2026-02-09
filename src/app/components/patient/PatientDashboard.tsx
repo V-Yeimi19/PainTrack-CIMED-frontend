@@ -145,7 +145,7 @@ export function PatientDashboard({ patient, onNewRecord, onRegisterPain, onLogou
               Tu dolor ha aumentado significativamente. Te recomendamos agendar una cita médica.
             </AlertDescription>
             <Button
-              className="w-full h-16 sm:h-40 text-xl sm:text-2xl font-bold bg-red-1 hover:bg-red-700 shadow-x2"
+              className="w-full h-16 sm:h-40 text-xl sm:text-2xl font-bold bg-red-30 hover:bg-red-700 shadow-x2"
             >
               SOLICITAR CITA
             </Button>
