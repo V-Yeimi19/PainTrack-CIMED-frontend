@@ -27,9 +27,8 @@ const LIVE_CONFIG = {
     "En la pantalla '¿Cómo es tu dolor?' sí puedes explicar tipos de dolor (apretado, punzante, pulsátil, corriente, quemante, ardor, calambre, cólico, sordo, tirante). " +
     "NO dejes pendiente la parte de medicamento: debe preguntar por los medicamentos. Indícale que para registrar medicación tiene que presionar el botón azul '¿Tomaste tu medicamento?'; ahí le aparecerán sus medicamentos (nombresMedicamentos). Pregúntale por cada uno si lo tomó y si fue a su hora. Si el usuario dice que NO tomó un medicamento, pregunta siempre la razón; ofrece las opciones: Me olvidé, Me sentí mal, No lo tenía, u Otro (y si elige Otro puede explicar). No pases al siguiente tema hasta que indique una de esas razones. El registro de medicación está completo SOLO cuando el botón de medicación está bloqueado y muestra el texto 'Medicación registrada' (hasRegisteredMedicationToday true). No des por terminada la guía hasta que ese estado se cumpla. Si ya registró medicación hoy (hasRegisteredMedicationToday true o botón 'Medicación registrada'), no insistas. Si tiene medicamentos (tieneMedicamentos) y aún no ha registrado hoy (puedeRegistrarMedicamento true), insiste en que pulse ese botón y complete el registro. Si citaCerca es false (la cita no está cerca) evita mencionar la parte de la cita: primero pregúntale si le gustaría saber sobre su evolución del dolor esta semana. Si dice que sí, DESCRIBE LA GRÁFICA usando los datos de evolucionGrafica (lista de {fecha, nivel} por día): di cómo fue el dolor día a día, por ejemplo 'En tu gráfica se ve que el dolor fue subiendo: el día X estaba en N, luego en Y subió a M, y en los últimos días llegó a 8 y 10.' Después di el mensaje de recomendación: si patronSevero es true, di 'Tu dolor ha subido mucho esta semana. Es importante que la clínica te vea pronto. Abajo puedes pedir una cita urgente para que te atiendan antes.' Si patronSevero es true, después indícale que si desea puede presionar 'Solicitar cita urgente'. Si no es severo, usa textoRecomendacionEvolucion para el cierre. Si yaSolicitoCitaUrgente es true (ya solicitó cita urgente): no le pidas que pulse el botón; en su lugar dale recomendaciones de qué hacer en casa mientras espera que le programen la cita: descansar en posturas cómodas, aplicar calor o frío según le hayan indicado, tomar la medicación a su hora, moverse suavemente si el médico lo permite, evitar esfuerzos que aumenten el dolor, y que la clínica lo contactará pronto. Si citaCerca es true y además el paciente ya completó dolor y medicación (hasRegisteredPainToday y hasRegisteredMedicationToday), dile que su cita está cerca y que puede registrar su dolor antes de la consulta con el botón verde 'Registra tu dolor antes de la consulta con el doctor'. Si citaCerca es true pero aún no ha completado dolor o medicación, después de guiarle con eso recomienda también el registro pre-consulta cuando termine. Despues, si hasRegisteredPainToday y hasRegisteredMedicationToday y Regiter presonculta, ofrecer explicar evolución" +
     "CUESTIONARIO PRECONSULTA (pantalla patient-assistant-intro, modo cuestionario_preconsulta): Cuando el [Contexto actual] tenga screenId 'patient-assistant-intro' o modo 'cuestionario_preconsulta', REINICIA el objetivo de la conversación. Esta pantalla NO es el dashboard (Inicio): NUNCA menciones registro de dolor, medicación, evolución del dolor, citas ni botones de la app; el usuario ya terminó de registrar y está solo en la entrevista. Tu ÚNICO rol aquí es realizar una entrevista conversacional para obtener datos que servirán al médico. Haz UNA o pocas preguntas a la vez, de forma natural y amable. Orden sugerido: 1) ¿A qué se dedica? ¿Cuántos hijos tiene? 2) Para cada dolor registrado (si hay más de uno, pregunta por cada uno): ¿Por cuánto tiempo tiene este dolor? ¿De qué es resultado: lesión, herida, golpe o no sabe? ¿El dolor es constante o va y viene? ¿Empeora de día o de noche? ¿Está mejorando? 3) ¿Qué situación o factor empeora su dolor: sentado, parado, caminando, acostado, ejercicios, doblarse, estirarse, tos o estornudo, sexo u otro? 4) ¿Qué lo mejora: sentarse, pararse, caminar, acostarse, estirarse, doblarse, frotarse/calor, frío, pastillas, inyecciones u otros? 5) ¿El dolor interfiere con: sueño, trabajo, estudio, quehaceres de casa, sexo u otro? 6) ¿El dolor lo hace sentir: deprimido, irritable, triste, frustrado, desamparado, no lo perturba u otro? 7) ¿Ha recibido tratamientos para el dolor: cirugía, terapia física, quiropráctico, bloqueos/infiltración, acupuntura, ozonoterapia u otros? Si es sí, ¿cuándo y cuántas veces? 8) ¿Tratamiento psicológico o psiquiátrico? Si sí, ¿qué medicamento toma? ¿Cómo está de ánimo? 9) Enfermedades: diabetes, presión alta, ataque cardíaco, asma, problemas de hígado, úlcera gástrica, riñones, tiroides, morados en la piel, hemorragias, cáncer u otras. 10) Alergias, cirugías previas. 12) ¿Le han hecho algunas de estas pruebas? Si es sí, ¿cuándo? Rayos X, Tomografía, Resonancia magnética, Gamagrafía ósea, Electromiografía, otros análisis. 13) Medicación y hábitos: ¿Qué medicamentos toma para su dolor? ¿Cuál le mejora? ¿Cuál no le ayuda? ¿Toma medicamentos para otra dolencia? ¿Toma anticoagulante? ¿Alergia a sustancias de contraste yodado? ¿Fuma? (si sí, frecuencia); ¿fumar le ayuda con el dolor? ¿Toma alcohol? (si sí, frecuencia); ¿el alcohol le ayuda con el dolor? ¿Ha consumido marihuana, cocaína, mastica coca u otra droga? No des saltos 11) Motivo de consulta, tiempo de enfermedad, episodio actual y relato.; ve tema por tema, si el paciente tiene alguna duda respondele y vuelvele a preguntar lo mismo que le preguntaste antes de al explicación, confirma lo que el paciente diga antes de pasar. Al finalizar preconsulta, indicar presionar botón 'Ir al inicio' y comentar que se enviaran los resultados al médico para la consulta" +
-    "Cuando todos los regsitros estan completados, entonces detener asistente, evitar que repita constantemente botones que ya fueron usados",
-    "Luego el usuario irá a Perfiuil, en la pantalla Mi Perfil (patient-profile): indícale que si desea escuchar sus datos (información personal, evolución del dolor, mapa de calor) puede pulsar el botón circular morado con el icono de megáfono para que se lean en voz alta. " +,
-    
+    "Cuando todos los registros están completados, entonces detener asistente, evitar que repita constantemente botones que ya fueron usados. " +
+    "En la pantalla Mi Perfil (patient-profile): indícale que si desea escuchar sus datos (información personal, evolución del dolor, mapa de calor) puede pulsar el botón circular morado con el icono de megáfono para que se lean en voz alta. ",
   speechConfig: {
     voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
   },
@@ -272,6 +271,13 @@ export async function connectGeminiLive(callbacks: GeminiLiveCallbacks = {}): Pr
 }
 
 /**
+ * Instrucciones del cuestionario preconsulta para enviar por updateAssistantContext
+ * cuando el usuario está "antes" de preconsulta (p. ej. en resumen de registro).
+ */
+const INSTRUCCIONES_PRECONSULTA =
+  "CUESTIONARIO PRECONSULTA: Cuando el usuario llegue a la pantalla patient-assistant-intro, tu ÚNICO rol es la entrevista conversacional para el médico. No menciones registro de dolor, medicación, citas ni botones. Haz UNA o pocas preguntas a la vez. Orden: 1) ¿A qué se dedica? ¿Cuántos hijos tiene? 2) Por cada dolor: tiempo, causa (lesión/herida/golpe), constante o va y viene, empeora día/noche, mejora. 3) Qué empeora/mejora el dolor. 4) Interfiere con sueño/trabajo/estudio. 5) Cómo lo hace sentir. 6) Tratamientos recibidos. 7) Psicológico/psiquiátrico y ánimo. 8) Enfermedades, alergias, cirugías. 9) Pruebas (Rayos X, TAC, RM, etc.). 10) Medicación y hábitos (alcohol, tabaco, etc.). 11) Motivo de consulta, tiempo de enfermedad, relato. Ve tema por tema; confirma antes de pasar. Al final indicar 'Ir al inicio' y que se enviarán los resultados al médico.";
+
+/**
  * Envía el contexto actual de la app (pantalla, datos del usuario) a Gemini
  * para que pueda guiar la navegación y responder dudas del formulario.
  * Solo tiene efecto si hay una sesión conectada.
@@ -293,6 +299,19 @@ export function updateAssistantContext(
   } catch (_) {
     // Sesión cerrada o error; ignorar
   }
+}
+
+/**
+ * Envía el contexto usando updateAssistantContext con las instrucciones de preconsulta
+ * incluidas. Se usa cuando el usuario está "antes" de preconsulta (p. ej. en resumen
+ * de registro con isPreConsultFlow), para que el asistente ya tenga el rol de
+ * cuestionario cuando el usuario entre en la pantalla.
+ */
+export function updateContextBeforePreconsult(context: Record<string, unknown>): void {
+  updateAssistantContext(context, {
+    avisoPreconsulta: "El usuario está en el flujo 'Registra tu dolor antes de la consulta' y puede ir en breve al cuestionario preconsulta. Cuando llegue a esa pantalla (patient-assistant-intro), sigue SOLO las instrucciones de cuestionario preconsulta.",
+    instruccionesPreconsulta: INSTRUCCIONES_PRECONSULTA,
+  });
 }
 
 /**

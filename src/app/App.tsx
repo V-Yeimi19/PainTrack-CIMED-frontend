@@ -14,7 +14,7 @@ import { DoctorDashboard } from '@/app/components/doctor/DoctorDashboard';
 import { Patient, Doctor, PainLevel, PainLocation, PainType, MedicationRecord } from '@/app/types';
 import { addPainRecord, getPatientRecords, updatePatient } from '@/app/data/mockData';
 import { CustomPoint } from '@/app/components/patient/BodyMap';
-import { connectGeminiLive, updateAssistantContext, sendPreconsultContextReset, type ConnectionStatus } from '@/app/utils/geminiLive';
+import { connectGeminiLive, updateAssistantContext, updateContextBeforePreconsult, sendPreconsultContextReset, type ConnectionStatus } from '@/app/utils/geminiLive';
 import { VoiceAssistantFab } from '@/app/components/patient/VoiceAssistantFab';
 
 // Claves para localStorage
@@ -345,10 +345,11 @@ export default function App() {
   useEffect(() => {
     if (state.screen === 'login' || state.screen === 'doctor-dashboard') return;
     const ctx = getContextFromState(state);
-    // En la pantalla del círculo morado (cuestionario preconsulta) reiniciamos el contexto
-    // para que el asistente solo haga la entrevista del cuestionario, no guía de otras pantallas
     if (state.screen === 'patient-assistant-intro') {
       sendPreconsultContextReset(ctx);
+    } else if (state.screen === 'patient-registration-summary' && state.isPreConsultFlow) {
+      // Antes de preconsulta: enviar contexto con instrucciones de cuestionario para que el asistente ya las tenga
+      updateContextBeforePreconsult(ctx);
     } else {
       updateAssistantContext(ctx);
     }
