@@ -186,7 +186,7 @@ function getContextFromState(state: AppState): Record<string, unknown> {
       }));
       const textoEvolucion =
         patronSevero
-          ? 'Cómo vas esta semana. Tu dolor ha subido mucho esta semana. Es importante que la clínica te vea pronto. Abajo puedes pedir una cita urgente para que te atiendan antes.'
+          ? '¿Cómo vas esta semana?. Tu dolor ha subido mucho esta semana. Es importante que la clínica te vea pronto. Abajo puedes pedir una cita urgente para que te atiendan antes.'
           : maxEva <= 3
             ? 'Cómo vas esta semana. Tu dolor está en un nivel bajo. Lo que tomas para el dolor parece estar ayudando. Sigue con tu tratamiento y no dejes de registrar cómo te sientes.'
             : 'Cómo vas esta semana. Tu dolor está en un nivel medio. Es buen momento para que el médico revise tu medicación en la próxima cita. Sigue registrando cómo te sientes.';

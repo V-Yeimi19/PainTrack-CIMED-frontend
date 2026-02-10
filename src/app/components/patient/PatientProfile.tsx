@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Patient, PainLevel } from '@/app/types';
@@ -98,11 +98,7 @@ export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProf
     speakNatural(parts.join(' '));
   };
 
-  // Al entrar a esta pantalla, leer todos los datos del perfil en voz alta
-  useEffect(() => {
-    const t = setTimeout(readFullProfile, 400);
-    return () => clearTimeout(t);
-  }, []);
+  // La lectura de datos solo se activa al pulsar el botón morado del megáfono (no automática)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 p-4 sm:p-6">
@@ -337,7 +333,7 @@ export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProf
                     <p
                       className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4 text-center"
                       tabIndex={0}
-                      onFocus={() => speakNatural('Mapa de calor')}
+                      onFocus={() => speakNatural('Mapa de dolor')}
                     >
                       Mapa de calor
                     </p>
@@ -366,6 +362,9 @@ export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProf
                         className="max-w-full h-auto max-h-[400px] object-contain"
                       />
                     </div>
+                    <p className="mt-3 text-center text-sm sm:text-base text-gray-600 font-medium">
+                      Mientras más roja la zona, más dolor registrado.
+                    </p>
                     {lastRecord && (
                       <div
                         className="mt-4 text-center cursor-pointer focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 outline-none rounded-lg p-2"
@@ -442,6 +441,9 @@ export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProf
                         className="max-w-full h-auto max-h-[400px] object-contain"
                       />
                     </div>
+                    <p className="mt-3 text-center text-sm sm:text-base text-gray-600 font-medium">
+                      Mientras más roja la zona, más dolor registrado.
+                    </p>
                   </div>
                 </div>
               )}

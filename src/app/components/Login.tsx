@@ -4,7 +4,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { findPatientByDNI, findDoctorByCode } from '@/app/data/mockData';
 import { Patient, Doctor } from '@/app/types';
-import { User, Stethoscope, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { User, Stethoscope, ArrowLeft } from 'lucide-react';
 
 interface LoginProps {
   onPatientLogin: (patient: Patient) => void;
@@ -20,8 +20,6 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
   const [doctorCode, setDoctorCode] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPatientPassword, setShowPatientPassword] = useState(false);
 
   const handlePatientLogin = () => {
     const patient = findPatientByDNI(dni);
@@ -78,7 +76,8 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               </Button>
               <Button
                 onClick={() => setRole('doctor')}
-                className="w-full h-20 text-xl font-semibold flex items-center justify-center text-white bg-gradient-to-r from-[hsl(270,70%,50%)]/60 to-[hsl(270,70%,45%)]/60 hover:from-[hsl(270,70%,45%)]/70 hover:to-[hsl(270,70%,40%)]/70 transition-all rounded-xl border-0 border-[hsl(270,70%,50%)]/40"
+                variant="ghost"
+                className="w-full max-w-[200px] mx-auto h-auto py-2 text-sm font-semibold flex items-center justify-center text-[hsl(270,70%,45%)] hover:text-[hsl(270,70%,35%)] hover:bg-[hsl(270,70%,95%)] underline underline-offset-2 transition-all rounded-lg"
               >
                 Soy Médico
               </Button>
@@ -178,26 +177,15 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                   </div>
                   <Input
                     id="patientPassword"
-                    type={showPatientPassword ? 'text' : 'password'}
+                    type="password"
                     placeholder="Contraseña"
                     value={patientPassword}
                     onChange={(e) => {
                       setPatientPassword(e.target.value);
                       setError('');
                     }}
-                    className="h-14 pl-12 pr-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                    className="h-14 pl-12 pr-4 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPatientPassword(!showPatientPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] z-10"
-                  >
-                    {showPatientPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
                 </div>
               </div>
 
@@ -306,26 +294,15 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                 </div>
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   placeholder="Contraseña"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  className="h-14 pl-12 pr-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                  className="h-14 pl-12 pr-4 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] z-10"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
               </div>
             </div>
 

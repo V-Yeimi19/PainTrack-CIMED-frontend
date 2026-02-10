@@ -201,8 +201,10 @@ export function PatientDashboard({
             <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
           </button>
         </div>
-        {assistantStatus === 'connected' && (
+        {assistantStatus === 'connected' ? (
           <p className="text-base sm:text-lg text-green-700 font-medium -mt-4 mb-2">Conectado. Habla ahora. Toca el micrófono de nuevo para desconectar.</p>
+        ) : (
+          <p className="text-lg sm:text-xl text-[hsl(270,50%,35%)] font-medium -mt-4 mb-2">Presiona el micrófono para hablar con el asistente.</p>
         )}
         {assistantError && (
           <Alert className="mb-4 border-amber-500 bg-amber-50">
