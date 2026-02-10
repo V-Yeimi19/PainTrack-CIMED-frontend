@@ -68,7 +68,7 @@ export function AssistantIntro({
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex flex-col items-center justify-center p-6 pb-28">
       <div className="max-w-2xl w-full text-center">
         <p className="text-lg sm:text-xl font-semibold text-[hsl(270,50%,40%)] mb-4">
-          Asistente Gemini
+          Asistente CIMED
         </p>
 
         {/* Círculo morado con icono de micrófono: tocar = conectar/hablar (no hay botón en esquina) */}
@@ -95,7 +95,7 @@ export function AssistantIntro({
         )}
         {!isConnected && !isConnecting && (
           <p className="text-base sm:text-lg text-gray-600 mb-2">
-            Toca el micrófono para hablar con Gemini.
+            Toca el micrófono para hablar con el asistente.
           </p>
         )}
 
