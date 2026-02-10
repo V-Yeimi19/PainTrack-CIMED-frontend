@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-// import { speakNatural } from '@/app/utils/speech';
+import { speakNatural } from '@/app/utils/speech';
 import { PainLocation } from '@/app/types';
 import {
   Dialog,
@@ -216,27 +216,25 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
         // Activar modo de selección libre
         setIsOtherMode(true);
         setSelectedLocation('Otro');
-        // const message = "Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.";
-        // speakNatural(message);
+        speakNatural('Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.');
       }
       return;
     }
-    
+
     setSelectedLocation(location);
-    
+    speakNatural(location);
+
     // Verificar si esta parte tiene sub-opciones
     const subOptions = bodyPartSubOptions[location];
-    
+
     if (subOptions && subOptions.length > 0) {
       // Mostrar diálogo de sub-opciones
       setSubOptionsLocation(location);
       setShowSubOptions(true);
-      // speakNatural(location);
     } else {
       // Mostrar diálogo normal con imagen
       setDialogLocation(location as PainLocation);
       setShowDialog(true);
-      // speakNatural(location);
     }
   };
 
@@ -257,20 +255,21 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
   // Manejar clic en el mapa cuando está en modo "Otro"
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isOtherMode) return;
-    
+
     // Evitar que se active si se hace clic en un punto existente o en el globo
     const target = e.target as HTMLElement;
     if (target.closest('.absolute') && !target.closest('.bg-orange-500')) {
       return;
     }
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     setPendingPoint({ x, y });
     setShowConfirmBubble(true);
     setCursorPosition(null); // Ocultar punto que sigue el cursor al hacer clic
+    speakNatural('¿Confirmas que te duele en esta parte del cuerpo?');
   };
 
   // Confirmar punto personalizado
@@ -303,10 +302,9 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
 
   const handleSubOptionSelect = (subOption: string) => {
     setShowSubOptions(false);
-    // Mostrar el diálogo con la imagen de la sub-opción seleccionada
     setDialogLocation(subOption as PainLocation);
     setShowDialog(true);
-    // speakNatural(subOption);
+    speakNatural(subOption);
   };
 
   const handleConfirmSelection = () => {

@@ -11,27 +11,41 @@ const AZURE_SPEECH_REGION = import.meta.env.VITE_AZURE_SPEECH_REGION || 'eastus'
 let currentAudio: HTMLAudioElement | null = null;
 let currentUtterance: SpeechSynthesisUtterance | null = null;
 
+// Evitar doble lectura / eco: ignorar misma frase si se pidió hace muy poco (focus + click)
+const DEBOUNCE_MS = 380;
+let lastSpokenText = '';
+let lastSpokenTime = 0;
+
 /**
  * Sintetiza texto a voz usando Azure Speech Services (TTS neural)
  * @param text - Texto a sintetizar
  * @param lang - Idioma (default: 'es-ES')
  */
 export async function speakNatural(text: string, lang: string = 'es-ES'): Promise<void> {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return;
+
+  const now = Date.now();
+  if (lastSpokenText === trimmed && now - lastSpokenTime < DEBOUNCE_MS) {
+    return; // Evitar eco: misma frase por focus+click seguidos
+  }
+  lastSpokenText = trimmed;
+  lastSpokenTime = now;
+
   // Cancelar cualquier audio en reproducción antes de iniciar uno nuevo
   stopAllSpeech();
-  
-  // Verificar que existe la API key de Azure
+
+  // Si no hay Azure, usar Web Speech API para que la lectura en voz alta funcione en desarrollo
   if (!AZURE_SPEECH_KEY) {
-    console.error('Azure Speech API Key no configurada. Por favor, configura VITE_AZURE_SPEECH_KEY en el archivo .env');
+    speakWithWebSpeech(trimmed, lang);
     return;
   }
-  
-  // Usar solo Azure Speech Services
+
   try {
-    await speakWithAzure(text, lang);
+    await speakWithAzure(trimmed, lang);
   } catch (error) {
     console.error('Error con Azure Speech:', error);
-    // No usar fallback, solo mostrar error
+    speakWithWebSpeech(trimmed, lang);
   }
 }
 

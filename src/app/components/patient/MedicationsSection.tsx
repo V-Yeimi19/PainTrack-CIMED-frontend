@@ -3,14 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Button } from '@/app/components/ui/button';
 import { Medication, MedicationRecord } from '@/app/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-// import { speakNatural } from '@/app/utils/speech';
+import { speakNatural } from '@/app/utils/speech';
 
 interface MedicationsSectionProps {
   medications: Medication[];
+  hasRegisteredMedicationToday?: boolean;
   onMedicationRecord: (record: MedicationRecord) => void;
 }
 
-export function MedicationsSection({ medications, onMedicationRecord }: MedicationsSectionProps) {
+export function MedicationsSection({ medications, hasRegisteredMedicationToday = false, onMedicationRecord }: MedicationsSectionProps) {
   const activeMedications = medications.filter(med => med.active);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, { taken?: boolean; reasonNotTaken?: string }>>({});
@@ -19,6 +20,38 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
 
   if (activeMedications.length === 0) {
     return null;
+  }
+
+  // Si ya registró medicación hoy: mostrar mensaje de "Ya registraste hoy" y botón deshabilitado
+  if (hasRegisteredMedicationToday) {
+    return (
+      <Card className="shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-cyan-50 to-sky-50 pb-2">
+          <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold text-cyan-700 text-center">
+            Medicamentos indicados por tu médico
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6 lg:p-8">
+          <div className="text-center py-6 sm:py-8">
+            <div className="mb-4 sm:mb-6">
+              <span className="text-5xl sm:text-6xl">🙏</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-cyan-700 mb-2 sm:mb-4">
+              Ya registraste tus medicamentos hoy
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
+              Puedes volver a registrar mañana.
+            </p>
+            <Button
+              disabled
+              className="h-14 sm:h-16 px-6 sm:px-8 text-base sm:text-lg font-bold bg-cyan-300 text-white cursor-not-allowed opacity-90"
+            >
+              Medicación registrada
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const currentMedication = activeMedications[currentIndex];
@@ -208,6 +241,7 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
             </div>
             <Button
               onClick={handleStartMedications}
+              onFocus={() => speakNatural('¿Tomaste tu medicamento?')}
               className="h-16 sm:h-20 px-8 sm:px-10 text-lg sm:text-xl lg:text-2xl font-bold bg-cyan-500 hover:bg-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.6),0_4px_15px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.8),0_6px_20px_rgba(6,182,212,0.6)] transition-all duration-100 active:scale-[0.98]"
             >
               ¿Tomaste tu medicamento?
@@ -263,44 +297,19 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center max-w-md mx-auto mb-6">
                   <Button
                     onClick={() => handleTaken(currentMedication.id, true)}
+                    onFocus={() => speakNatural('Sí')}
                     className="h-16 sm:h-20 text-lg sm:text-xl lg:text-2xl font-bold bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-100 active:scale-[0.98] flex-1"
                   >
                     ✅ Sí
                   </Button>
                   <Button
                     onClick={() => handleTaken(currentMedication.id, false)}
+                    onFocus={() => speakNatural('No')}
                     className="h-16 sm:h-20 text-lg sm:text-xl lg:text-2xl font-bold bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-100 active:scale-[0.98] flex-1"
                   >
                     ⭕ No
                   </Button>
                 </div>
-                
-                {/* Botón azul para registrar medicamento */}
-                {currentResponse && (
-                  <div className="flex justify-center mt-4">
-                    <Button
-                      onClick={() => {
-                        if (currentResponse.taken) {
-                          onMedicationRecord({
-                            medicationId: currentMedication.id,
-                            date: new Date(),
-                            taken: true
-                          });
-                        } else if (currentResponse.reasonNotTaken) {
-                          onMedicationRecord({
-                            medicationId: currentMedication.id,
-                            date: new Date(),
-                            taken: false,
-                            reasonNotTaken: currentResponse.reasonNotTaken as any
-                          });
-                        }
-                      }}
-                      className="h-14 sm:h-16 px-8 sm:px-10 text-base sm:text-lg lg:text-xl font-bold bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-100 active:scale-[0.98]"
-                    >
-                      Registrar medicamento
-                    </Button>
-                  </div>
-                )}
               </>
             ) : (
               <>
@@ -312,32 +321,17 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
                   {reasonOptions.map((reason) => (
                     <Button
                       key={reason}
-                      onClick={() => handleReasonSelected(currentMedication.id, reason)}
+                      onClick={() => {
+                        speakNatural(reason);
+                        handleReasonSelected(currentMedication.id, reason);
+                      }}
+                      onFocus={() => speakNatural(reason)}
                       className="h-16 sm:h-18 text-base sm:text-lg lg:text-xl font-semibold bg-white hover:bg-cyan-50 text-gray-800 border-2 border-cyan-200 hover:border-cyan-300 shadow-md hover:shadow-lg transition-all duration-100 active:scale-[0.98]"
                     >
                       {reason}
                     </Button>
                   ))}
                 </div>
-                
-                {/* Botón azul para registrar medicamento después de seleccionar razón */}
-                {currentResponse?.reasonNotTaken && (
-                  <div className="flex justify-center mt-4">
-                    <Button
-                      onClick={() => {
-                        onMedicationRecord({
-                          medicationId: currentMedication.id,
-                          date: new Date(),
-                          taken: false,
-                          reasonNotTaken: currentResponse.reasonNotTaken as any
-                        });
-                      }}
-                      className="h-14 sm:h-16 px-8 sm:px-10 text-base sm:text-lg lg:text-xl font-bold bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-100 active:scale-[0.98]"
-                    >
-                      Registrar medicamento
-                    </Button>
-                  </div>
-                )}
               </>
             )}
           </div>

@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainLevel } from '@/app/types';
-// import { speakNatural } from '@/app/utils/speech';
+import { speakNatural } from '@/app/utils/speech';
 
 interface PainLevelSelectorProps {
   onSelect: (level: PainLevel) => void;
   onBack: () => void;
 }
 
-// Opciones de dolor según especificación del usuario
+// Opciones de dolor por rangos: 0, 1-2, 3-4, 5-6, 7-8, 9-10 (valor interno para la app: 0, 2, 4, 6, 8, 10)
 const painLevels = [
-  { level: 0, emoji: '😊', label: 'No me duele', color: 'bg-green-500' },
-  { level: 2, emoji: '🙂', label: 'Me duele un poco', color: 'bg-green-400' },
-  { level: 4, emoji: '😐', label: 'Me duele, pero puedo hacer mis cosas', color: 'bg-yellow-500' },
-  { level: 6, emoji: '😣', label: 'Me duele bastante', color: 'bg-orange-500' },
-  { level: 8, emoji: '😖', label: 'Me duele mucho', color: 'bg-red-500' },
-  { level: 10, emoji: '😫', label: 'Es el peor dolor que he sentido', color: 'bg-red-600' },
+  { level: 0, rangeLabel: '0', emoji: '😊', label: 'No me duele', color: 'bg-green-500' },
+  { level: 2, rangeLabel: '1-2', emoji: '🙂', label: 'Me duele un poco', color: 'bg-green-400' },
+  { level: 4, rangeLabel: '3-4', emoji: '😐', label: 'Me duele, pero puedo hacer mis cosas', color: 'bg-yellow-500' },
+  { level: 6, rangeLabel: '5-6', emoji: '😣', label: 'Me duele bastante', color: 'bg-orange-500' },
+  { level: 8, rangeLabel: '7-8', emoji: '😖', label: 'Me duele mucho', color: 'bg-red-500' },
+  { level: 10, rangeLabel: '9-10', emoji: '😫', label: 'Es el peor dolor que he sentido', color: 'bg-red-600' },
 ];
 
 export function PainLevelSelector({ onSelect, onBack }: PainLevelSelectorProps) {
@@ -75,16 +75,24 @@ export function PainLevelSelector({ onSelect, onBack }: PainLevelSelectorProps) 
                     <button
                       key={option.level}
                       onClick={() => {
-                        // Actualizar estado primero para feedback visual inmediato
+                        speakNatural(option.label);
                         setSelectedLevel(option.level as PainLevel);
-                        // setTimeout(() => speakNatural(option.label), 0);
                       }}
-                      className={`w-full flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-2xl transition-all duration-100 active:scale-[0.98] ${
+                      onFocus={() => speakNatural(option.label)}
+                      className={`w-full flex items-center gap-3 sm:gap-6 p-4 sm:p-6 rounded-2xl transition-all duration-100 active:scale-[0.98] ${
                         isSelected 
                           ? `${selectedColors[option.level]} text-white shadow-xl scale-[1.02]` 
                           : `${unselectedColors[option.level]} text-gray-800 hover:shadow-lg hover:scale-[1.01]`
                       }`}
                     >
+                      <span
+                        className={`flex h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-full text-lg sm:text-xl font-bold ${
+                          isSelected ? 'bg-white/25 text-white' : 'bg-black/10 text-gray-800'
+                        }`}
+                        aria-hidden
+                      >
+                        {option.rangeLabel}
+                      </span>
                       <span className="text-4xl sm:text-5xl lg:text-6xl flex-shrink-0">
                         {option.emoji}
                       </span>

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainLocation } from '@/app/types';
 import { BodyMap, CustomPoint } from './BodyMap';
-// import { speakNatural } from '@/app/utils/speech';
+import { speakNatural } from '@/app/utils/speech';
 
 // Mapeo de partes del cuerpo a sus imágenes
 const bodyPartImages: Record<PainLocation, string> = {
@@ -68,6 +68,7 @@ export function PainLocationSelector({ gender, registeredLocations = [], customP
                 return (
                   <Button
                     key={part}
+                    onFocus={() => speakNatural(part)}
                     onClick={() => onSelect(part)}
                     className="h-32 sm:h-36 text-xl sm:text-2xl font-semibold bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] text-white shadow-lg hover:shadow-xl transition-all flex flex-col items-center justify-center gap-2 p-4 relative overflow-hidden"
                   >
@@ -114,6 +115,7 @@ export function PainLocationSelector({ gender, registeredLocations = [], customP
         )}
         <Button
           onClick={onBack}
+          onFocus={() => speakNatural('Atrás')}
           variant="outline"
           className="w-full h-20 text-2xl font-bold"
         >

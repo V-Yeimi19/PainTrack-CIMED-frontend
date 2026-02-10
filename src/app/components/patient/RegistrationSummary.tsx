@@ -7,7 +7,8 @@ interface RegistrationSummaryProps {
   location: PainLocation;
   painLevel: PainLevel;
   types: PainType[];
-  hasMoreParts: boolean;
+  /** Si hay más partes en tratamiento (flujo médico). Sigue mostrándose siempre la opción de registrar otra parte. */
+  hasMoreParts?: boolean;
   onContinue: () => void;
   onFinish: () => void;
 }
@@ -16,7 +17,6 @@ export function RegistrationSummary({
   location, 
   painLevel, 
   types, 
-  hasMoreParts,
   onContinue, 
   onFinish 
 }: RegistrationSummaryProps) {
@@ -94,23 +94,20 @@ export function RegistrationSummary({
         </div>
       </div>
 
-      {/* Botones fijos */}
+      {/* Botones fijos: siempre ofrecer registrar otra parte y finalizar */}
       <div className="bg-white shadow-lg px-6 py-4 space-y-3">
-        {hasMoreParts ? (
-          <Button
-            onClick={onContinue}
-            className="w-full h-24 sm:h-28 text-3xl sm:text-4xl font-bold bg-[hsl(270,45%,55%)] hover:bg-[hsl(270,45%,50%)] shadow-2xl text-white transition-colors"
-          >
-            REGISTRAR OTRA PARTE
-          </Button>
-        ) : (
-          <Button
-            onClick={onFinish}
-            className="w-full h-24 sm:h-28 text-3xl sm:text-4xl font-bold bg-[hsl(142,45%,45%)] hover:bg-[hsl(142,45%,40%)] shadow-2xl text-white transition-colors"
-          >
-            FINALIZAR
-          </Button>
-        )}
+        <Button
+          onClick={onContinue}
+          className="w-full h-20 sm:h-24 text-xl sm:text-2xl font-bold bg-[hsl(270,45%,55%)] hover:bg-[hsl(270,45%,50%)] shadow-2xl text-white transition-colors"
+        >
+          Registrar dolor en otra parte del cuerpo
+        </Button>
+        <Button
+          onClick={onFinish}
+          className="w-full h-20 sm:h-24 text-xl sm:text-2xl font-bold bg-[hsl(142,45%,45%)] hover:bg-[hsl(142,45%,40%)] shadow-2xl text-white transition-colors"
+        >
+          Finalizar registro
+        </Button>
       </div>
     </div>
   );

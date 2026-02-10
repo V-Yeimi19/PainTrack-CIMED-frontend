@@ -26,13 +26,14 @@ export const mockPatients: Patient[] = [
       "Fisioterapia para dolor crónico",
       "Ejercicios de movilidad asistida",
     ],
-    nextAppointment: new Date(2026, 0, 25),
+    nextAppointment: new Date(2026, 1, 12), // 12 de febrero de 2026
     status: "warning",
     needsAppointment: false,
     caracter: "Agresivo",
     numberOfChildren: "3",
     educationLevel: "Secundaria completa",
     occupation: "Comerciante",
+    doctorDiagnosis: "Dolor osteoarticular crónico en la rodilla y lumbar. En tratamiento con analgesia y fisioterapia.",
     treatedBodyParts: ["Rodillas", "Espalda"], // Partes tratadas en consulta
     medications: [
       { id: "med1", name: "Paracetamol", dosage: "500 mg", active: true },
@@ -63,6 +64,7 @@ export const mockPatients: Patient[] = [
     numberOfChildren: "2",
     educationLevel: "Primaria completa",
     occupation: "Agricultor",
+    doctorDiagnosis: "Dolor musculoesquelético crónico, fibromialgia. Terapia y actividad física supervisada.",
     treatedBodyParts: ["Espalda", "Piernas"], // Partes tratadas en consulta
     medications: [
       { id: "med3", name: "Ibuprofeno", dosage: "400 mg", active: true },
@@ -89,6 +91,7 @@ export const mockPatients: Patient[] = [
     numberOfChildren: "4",
     educationLevel: "Superior incompleta",
     occupation: "Ama de casa",
+    doctorDiagnosis: "Dolor musculoesquelético crónico, fibromialgia.",
     treatedBodyParts: ["Cabeza", "Pecho"], // Partes tratadas en consulta
     medications: [
       { id: "med4", name: "Paracetamol", dosage: "500 mg", active: true },
@@ -96,63 +99,15 @@ export const mockPatients: Patient[] = [
   },
 ];
 
+// María González: evolución ascendente hasta patrón crítico (mockup para demo)
 export const mockPainRecords: PainRecord[] = [
-  {
-    id: "1",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 15),
-    painLevel: 3,
-    location: "Rodillas",
-    type: "Molesto",
-  },
-  {
-    id: "2",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 16),
-    painLevel: 4,
-    location: "Rodillas",
-    type: "Punzante",
-  },
-  {
-    id: "3",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 17),
-    painLevel: 2,
-    location: "Rodillas",
-    type: "Molesto",
-  },
-  {
-    id: "4",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 18),
-    painLevel: 5,
-    location: "Espalda",
-    type: "Constante",
-  },
-  {
-    id: "5",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 19),
-    painLevel: 3,
-    location: "Espalda",
-    type: "Molesto",
-  },
-  {
-    id: "6",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 20),
-    painLevel: 4,
-    location: "Rodillas",
-    type: "Punzante",
-  },
-  {
-    id: "7",
-    patientDNI: "12345678",
-    date: new Date(2026, 0, 21),
-    painLevel: 2,
-    location: "Rodillas",
-    type: "Molesto",
-  },
+  { id: "1", patientDNI: "12345678", date: new Date(2026, 1, 3), painLevel: 2, location: "Rodillas", type: "Sordo" },
+  { id: "2", patientDNI: "12345678", date: new Date(2026, 1, 4), painLevel: 3, location: "Rodillas", type: "Sordo" },
+  { id: "3", patientDNI: "12345678", date: new Date(2026, 1, 5), painLevel: 4, location: "Espalda", type: "Punzante" },
+  { id: "4", patientDNI: "12345678", date: new Date(2026, 1, 6), painLevel: 5, location: "Espalda", type: "Punzante" },
+  { id: "5", patientDNI: "12345678", date: new Date(2026, 1, 7), painLevel: 6, location: "Rodillas", type: "Punzante" },
+  { id: "6", patientDNI: "12345678", date: new Date(2026, 1, 8), painLevel: 8, location: "Espalda", type: "Quemante" },
+  { id: "7", patientDNI: "12345678", date: new Date(2026, 1, 9), painLevel: 10, location: "Espalda", type: "Quemante" },
   // Registros para Juan Pérez - mostrando aumento crítico
   {
     id: "8",
@@ -248,6 +203,12 @@ export const mockPainRecords: PainRecord[] = [
 // Funciones helper para simular operaciones de base de datos
 export const findPatientByDNI = (dni: string): Patient | undefined => {
   return mockPatients.find((p) => p.dni === dni);
+};
+
+/** Actualiza un paciente en la lista (p. ej. desde el perfil editable). */
+export const updatePatient = (updated: Patient): void => {
+  const i = mockPatients.findIndex((p) => p.dni === updated.dni);
+  if (i !== -1) mockPatients[i] = updated;
 };
 
 export const findDoctorByCode = (code: string): Doctor | undefined => {

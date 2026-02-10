@@ -60,6 +60,7 @@ export interface Patient {
   numberOfChildren?: string;
   educationLevel?: string;
   occupation?: string;
+  doctorDiagnosis?: string; // Diagnóstico del médico
   referringDoctor?: string;
   whoRecommended?: string;
   referralDataLastModified?: Date; // Fecha de última modificación de los datos de referencia
