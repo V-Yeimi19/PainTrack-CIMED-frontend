@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { speakNatural } from '@/app/utils/speech';
 import { PainLocation } from '@/app/types';
 import {
   Dialog,
@@ -94,13 +95,55 @@ const bodyPoints: Array<{
   },
 ];
 
-// Mapeo de ubicaciones a imágenes específicas
+// Mapeo de ubicaciones a imágenes específicas del cuerpo
+// Relaciona cada parte del cuerpo con su imagen correspondiente
 const locationImages: Record<string, string> = {
+  // Partes específicas con imágenes dedicadas
   'Rodilla derecha': '/images/cuerpo/rodilla derecha.png',
-  'Rodilla izquierda': '/images/cuerpo/rodilla derecha.png', // Usar la misma imagen o agregar específica
+  'Rodilla izquierda': '/images/cuerpo/rodilla derecha.png',
   'Muñeca izquierdo': '/images/cuerpo/muñeca izquierda.png',
   'Muñeca derecha': '/images/cuerpo/dorso mano izquierda.jpg',
-  // Agregar más mapeos según sea necesario
+  
+  // Partes generales - usar imágenes del cuerpo completo según vista
+  'Cabeza': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Pecho': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Estómago': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Espalda': '/images/cuerpo/espalda.png',
+  'Brazos': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Piernas': '/images/cuerpo/hombre_front-removebg-preview.png',
+  
+  // Partes específicas del mapa
+  'Tobillo derecho': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Tobillo izquierdo': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Cadera': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Hombro derecho': '/images/cuerpo/Hombro adelante.png',
+  'Hombro izquierdo': '/images/cuerpo/Hombro adelante.png',
+  
+  // Sub-opciones (Rodilla izquierda/derecha ya definidas arriba)
+  'Pecho superior': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Pecho medio': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Pecho inferior': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Pecho completo': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Frente': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Sien izquierda': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Sien derecha': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Nuca': '/images/cuerpo/hombre_back-removebg-preview.png',
+  'Parte superior': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Parte posterior': '/images/cuerpo/hombre_back-removebg-preview.png',
+  'Estómago superior': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Estómago medio': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Estómago inferior': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Abdomen completo': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Espalda superior': '/images/cuerpo/espalda.png',
+  'Espalda media': '/images/cuerpo/espalda.png',
+  'Espalda inferior': '/images/cuerpo/espalda.png',
+  'Espalda completa': '/images/cuerpo/espalda.png',
+  'Brazo izquierdo': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Brazo derecho': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Pierna izquierda': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Pierna derecha': '/images/cuerpo/hombre_front-removebg-preview.png',
+  'Muñeca izquierda': '/images/cuerpo/muñeca izquierda.png',
+  // Tobillo izquierdo/derecho ya definidos arriba
 };
 
 // Mapeo de partes generales a sub-opciones específicas
@@ -114,52 +157,6 @@ const bodyPartSubOptions: Record<string, string[]> = {
   'Muñecas': ['Muñeca izquierda', 'Muñeca derecha'],
   'Tobillos': ['Tobillo izquierdo', 'Tobillo derecho'],
   'Hombros': ['Hombro izquierdo', 'Hombro derecho'],
-};
-
-// Función para generar audio usando Web Speech API con voz más natural
-const speakText = (text: string, lang: string = 'es-ES') => {
-  // Verificar si el navegador soporta speechSynthesis
-  if ('speechSynthesis' in window) {
-    // Cancelar cualquier síntesis anterior
-    window.speechSynthesis.cancel();
-    
-    // Esperar un momento para que el navegador esté listo
-    setTimeout(() => {
-      // Crear una nueva instancia de SpeechSynthesisUtterance
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      
-      // Parámetros más naturales
-      utterance.rate = 0.85; // Velocidad ligeramente más lenta para sonar más natural
-      utterance.pitch = 1.1; // Tono ligeramente más alto (más natural)
-      utterance.volume = 1; // Volumen máximo
-      
-      // Intentar seleccionar una voz femenina en español (suele sonar más natural)
-      const voices = window.speechSynthesis.getVoices();
-      const spanishVoice = voices.find(voice => 
-        voice.lang.startsWith('es') && 
-        (voice.name.includes('Female') || voice.name.includes('Mujer') || voice.name.includes('Femenina'))
-      ) || voices.find(voice => voice.lang.startsWith('es'));
-      
-      if (spanishVoice) {
-        utterance.voice = spanishVoice;
-      }
-      
-      // Agregar eventos para mejorar la experiencia
-      utterance.onstart = () => {
-        console.log('Audio iniciado:', text);
-      };
-      
-      utterance.onerror = (event) => {
-        console.warn('Error en audio:', event);
-      };
-      
-      // Reproducir el audio
-      window.speechSynthesis.speak(utterance);
-    }, 50); // Pequeña pausa para asegurar que las voces estén cargadas
-  } else {
-    console.warn('Tu navegador no soporta Text-to-Speech');
-  }
 };
 
 export function BodyMap({ gender, registeredLocations = [], customPoints: externalCustomPoints = [], onSelect, onCustomPointsChange }: BodyMapProps) {
@@ -203,29 +200,38 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
     : `/images/cuerpo/mujer_back-removebg-preview.png?v=${IMAGE_VERSION}`;
 
   const handlePointClick = (location: PainLocation | string) => {
-    // Si es "Otro", activar modo de selección libre
+    // Si es "Otro", activar o desactivar modo de selección libre
     if (location === 'Otro') {
-      setIsOtherMode(true);
-      setSelectedLocation('Otro');
-      // Si ya hay un punto pendiente, mantenerlo
+      if (isOtherMode) {
+        // Si ya está en modo "Otro", desactivarlo
+        setIsOtherMode(false);
+        setSelectedLocation(null);
+        setPendingPoint(null);
+        setShowConfirmBubble(false);
+        setCursorPosition(null);
+      } else {
+        // Activar modo de selección libre
+        setIsOtherMode(true);
+        setSelectedLocation('Otro');
+        speakNatural('Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.');
+      }
       return;
     }
-    
+
     setSelectedLocation(location);
-    
+    speakNatural(location);
+
     // Verificar si esta parte tiene sub-opciones
     const subOptions = bodyPartSubOptions[location];
-    
+
     if (subOptions && subOptions.length > 0) {
       // Mostrar diálogo de sub-opciones
       setSubOptionsLocation(location);
       setShowSubOptions(true);
-      speakText(location);
     } else {
       // Mostrar diálogo normal con imagen
       setDialogLocation(location as PainLocation);
       setShowDialog(true);
-      speakText(location);
     }
   };
 
@@ -246,20 +252,21 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
   // Manejar clic en el mapa cuando está en modo "Otro"
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isOtherMode) return;
-    
+
     // Evitar que se active si se hace clic en un punto existente o en el globo
     const target = e.target as HTMLElement;
     if (target.closest('.absolute') && !target.closest('.bg-orange-500')) {
       return;
     }
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     setPendingPoint({ x, y });
     setShowConfirmBubble(true);
     setCursorPosition(null); // Ocultar punto que sigue el cursor al hacer clic
+    speakNatural('¿Confirmas que te duele en esta parte del cuerpo?');
   };
 
   // Confirmar punto personalizado
@@ -292,10 +299,9 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
 
   const handleSubOptionSelect = (subOption: string) => {
     setShowSubOptions(false);
-    // Mostrar el diálogo con la imagen de la sub-opción seleccionada
     setDialogLocation(subOption as PainLocation);
     setShowDialog(true);
-    speakText(subOption);
+    speakNatural(subOption);
   };
 
   const handleConfirmSelection = () => {
@@ -335,9 +341,12 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
     setSubOptionsLocation(null);
   };
 
-  // Cerrar globo de confirmación al hacer clic fuera
+  // Cerrar globo de confirmación al hacer clic fuera y leer pregunta
   useEffect(() => {
     if (!showConfirmBubble || !pendingPoint) return;
+
+    // const question = `¿Confirmar este punto? Responde sí para confirmar o no para cancelar.`;
+    // setTimeout(() => speakNatural(question), 100);
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -410,10 +419,12 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
 
       {/* Mensaje cuando está en modo "Otro" */}
       {isOtherMode && (
-        <div className="mb-4 text-center">
-          <p className="text-2xl font-bold text-orange-600">
-            Elige el punto donde te duele
-          </p>
+        <div className="max-w-3xl mx-auto mb-6 px-4 sm:px-6">
+          <div className="p-6 sm:p-8 bg-orange-200 border border-orange-300 rounded-2xl shadow-xl">
+            <p className="text-2xl sm:text-3xl lg:text-4xl text-white font-bold text-center leading-relaxed" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 6px rgba(0, 0, 0, 0.2)' }}>
+              Verás un punto naranja que puedes mover. Haz clic en la parte del cuerpo donde te duele.
+            </p>
+          </div>
         </div>
       )}
 
@@ -661,6 +672,7 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
             .filter(loc => loc !== 'Otro')
             .map((location) => {
               const isSelected = selectedLocation === location;
+              const locationImage = locationImages[location] || (location === 'Espalda' ? '/images/cuerpo/espalda.png' : '/images/cuerpo/hombre_front-removebg-preview.png');
               return (
                 <button
                   key={location}
@@ -671,6 +683,11 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
                       : 'bg-red-600 text-white shadow-md hover:bg-red-700'
                   }`}
                 >
+                  <img 
+                    src={locationImage} 
+                    alt={location}
+                    className="w-6 h-6 object-contain opacity-90"
+                  />
                   <span>✓</span>
                   {location}
                 </button>
@@ -681,7 +698,7 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
           <button
             onClick={() => handlePointClick('Otro')}
             className={`px-4 py-2 rounded-full text-lg font-semibold transition-all flex items-center gap-2 ${
-              selectedLocation === 'Otro'
+              isOtherMode || selectedLocation === 'Otro'
                 ? 'bg-purple-700 text-white ring-2 ring-purple-400 shadow-lg scale-105'
                 : isOtherRegistered
                 ? 'bg-purple-600 text-white shadow-md hover:bg-purple-700'
@@ -707,15 +724,25 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
           </DialogHeader>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-            {subOptionsLocation && bodyPartSubOptions[subOptionsLocation]?.map((option) => (
-              <Button
-                key={option}
-                onClick={() => handleSubOptionSelect(option)}
-                className="h-20 sm:h-24 text-xl sm:text-2xl font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-lg transition-all hover:scale-105"
-              >
-                {option}
-              </Button>
-            ))}
+            {subOptionsLocation && bodyPartSubOptions[subOptionsLocation]?.map((option) => {
+              // Buscar imagen relacionada con la opción o la parte principal
+              const optionImage = locationImages[option] || locationImages[subOptionsLocation] || 
+                (subOptionsLocation === 'Espalda' ? '/images/cuerpo/espalda.png' : '/images/cuerpo/hombre_front-removebg-preview.png');
+              return (
+                <Button
+                  key={option}
+                  onClick={() => handleSubOptionSelect(option)}
+                  className="h-20 sm:h-24 text-xl sm:text-2xl font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-lg transition-all hover:scale-105 flex items-center justify-center gap-3"
+                >
+                  <img 
+                    src={optionImage} 
+                    alt={option}
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain opacity-90"
+                  />
+                  {option}
+                </Button>
+              );
+            })}
           </div>
 
           <DialogFooter>

@@ -117,8 +117,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                 setPatientPassword('');
                 setError('');
               }}
-              variant="ghost"
-              className="mb-8 p-4 text-lg font-semibold text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] hover:bg-[hsl(270,81%,96%)] rounded-lg transition-all min-h-[56px]"
+              className="mb-8 p-4 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,70%)] to-[hsl(270,70%,65%)] hover:from-[hsl(270,70%,65%)] hover:to-[hsl(270,70%,60%)] rounded-lg transition-all min-h-[56px]"
             >
               <ArrowLeft className="w-6 h-6 mr-3" />
               Volver
@@ -219,8 +218,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                 setPassword('');
                 setError('');
               }}
-              variant="ghost"
-              className="mb-8 p-4 text-lg font-semibold text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] hover:bg-[hsl(270,81%,96%)] rounded-lg transition-all min-h-[56px]"
+              className="mb-8 p-4 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,70%)] to-[hsl(270,70%,65%)] hover:from-[hsl(270,70%,65%)] hover:to-[hsl(270,70%,60%)] rounded-lg transition-all min-h-[56px]"
             >
               <ArrowLeft className="w-6 h-6 mr-3" />
               Volver
@@ -305,7 +303,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
 
             <Button
               onClick={handleDoctorLogin}
-              className="w-full h-14 text-lg font-semibold shadow-lg text-white bg-gradient-to-r from-[hsl(270,81%,56%)] to-[hsl(270,81%,50%)] hover:from-[hsl(270,81%,50%)] hover:to-[hsl(270,81%,45%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0"
+              className="w-full h-14 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,45%)] to-[hsl(270,70%,40%)] hover:from-[hsl(270,70%,40%)] hover:to-[hsl(270,70%,35%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0 shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:shadow-none min-h-[56px]"
               disabled={!doctorCode || !password}
             >
               Iniciar Sesión
