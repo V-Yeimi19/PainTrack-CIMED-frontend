@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainLevel } from '@/app/types';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 
 interface PainLevelSelectorProps {
   onSelect: (level: PainLevel) => void;
@@ -22,10 +22,10 @@ export function PainLevelSelector({ onSelect, onBack }: PainLevelSelectorProps) 
   const [selectedLevel, setSelectedLevel] = useState<PainLevel | null>(null);
 
   // Leer pregunta cuando aparece la pantalla
-  useEffect(() => {
-    const question = `¿Cuánto te duele hoy? Selecciona una opción según cómo te sientes: No me duele, Me duele un poco, Me duele pero puedo hacer mis cosas, Me duele bastante, Me duele mucho, o Es el peor dolor que he sentido.`;
-    setTimeout(() => speakNatural(question), 100);
-  }, []);
+  // useEffect(() => {
+  //   const question = `¿Cuánto te duele hoy? Selecciona una opción según cómo te sientes: No me duele, Me duele un poco, Me duele pero puedo hacer mis cosas, Me duele bastante, Me duele mucho, o Es el peor dolor que he sentido.`;
+  //   setTimeout(() => speakNatural(question), 100);
+  // }, []);
 
   const handleConfirm = () => {
     if (selectedLevel !== null) {
@@ -77,8 +77,7 @@ export function PainLevelSelector({ onSelect, onBack }: PainLevelSelectorProps) 
                       onClick={() => {
                         // Actualizar estado primero para feedback visual inmediato
                         setSelectedLevel(option.level as PainLevel);
-                        // Reproducir audio después (no bloquea la UI)
-                        setTimeout(() => speakNatural(option.label), 0);
+                        // setTimeout(() => speakNatural(option.label), 0);
                       }}
                       className={`w-full flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-2xl transition-all duration-100 active:scale-[0.98] ${
                         isSelected 

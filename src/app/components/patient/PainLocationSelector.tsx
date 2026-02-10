@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainLocation } from '@/app/types';
 import { BodyMap, CustomPoint } from './BodyMap';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 
 // Mapeo de partes del cuerpo a sus imágenes
 const bodyPartImages: Record<PainLocation, string> = {
@@ -32,12 +32,12 @@ export function PainLocationSelector({ gender, registeredLocations = [], customP
   const showOnlyTreatedParts = treatedBodyParts && treatedBodyParts.length > 0;
 
   // Leer pregunta cuando aparece la pantalla
-  useEffect(() => {
-    const question = showOnlyTreatedParts
-      ? `Partes en tratamiento. Selecciona la parte del cuerpo donde sientes el dolor. Toca el botón de la parte que te duele.`
-      : `¿Dónde te duele? Toca la zona de tu cuerpo donde sientes el dolor en el mapa.`;
-    setTimeout(() => speakNatural(question), 100);
-  }, [showOnlyTreatedParts]);
+  // useEffect(() => {
+  //   const question = showOnlyTreatedParts
+  //     ? `Partes en tratamiento. Selecciona la parte del cuerpo donde sientes el dolor. Toca el botón de la parte que te duele.`
+  //     : `¿Dónde te duele? Toca la zona de tu cuerpo donde sientes el dolor en el mapa.`;
+  //   setTimeout(() => speakNatural(question), 100);
+  // }, [showOnlyTreatedParts]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex flex-col">

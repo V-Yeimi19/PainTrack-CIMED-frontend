@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Button } from '@/app/components/ui/button';
 import { Medication, MedicationRecord } from '@/app/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 
 interface MedicationsSectionProps {
   medications: Medication[];
@@ -29,23 +29,20 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
     responses[med.id]?.taken === true || responses[med.id]?.reasonNotTaken !== undefined
   );
 
-  // Leer pregunta de razón cuando se muestra el modal
-  useEffect(() => {
-    if (showReasonModal && currentMedication) {
-      const question = `¿Por qué no tomaste ${currentMedication.name}? Selecciona una opción: Me olvidé, Me sentí mal, No lo tenía, u Otro.`;
-      setTimeout(() => speakNatural(question), 100);
-    }
-  }, [showReasonModal, currentMedication]);
+  // useEffect(() => {
+  //   if (showReasonModal && currentMedication) {
+  //     const question = `¿Por qué no tomaste ${currentMedication.name}? Selecciona una opción: Me olvidé, Me sentí mal, No lo tenía, u Otro.`;
+  //     setTimeout(() => speakNatural(question), 100);
+  //   }
+  // }, [showReasonModal, currentMedication]);
 
   // Función para iniciar desde la pantalla inicial
   const handleStartMedications = () => {
     setShowInitialScreen(false);
-    // Iniciar la pregunta del primer medicamento automáticamente
-    if (currentMedication) {
-      // Leer la pregunta después de mostrar los botones
-      const question = `Medicamento: ${currentMedication.name}, ${currentMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
-      setTimeout(() => speakNatural(question), 200);
-    }
+    // if (currentMedication) {
+    //   const question = `Medicamento: ${currentMedication.name}, ${currentMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
+    //   setTimeout(() => speakNatural(question), 200);
+    // }
   };
 
   const handleTaken = (medicationId: string, taken: boolean) => {
@@ -67,12 +64,11 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
         // Avanzar al siguiente medicamento si hay más
         if (currentIndex < activeMedications.length - 1) {
           setCurrentIndex(currentIndex + 1);
-          // Leer la pregunta del siguiente medicamento
-          const nextMedication = activeMedications[currentIndex + 1];
-          if (nextMedication) {
-            const question = `Medicamento: ${nextMedication.name}, ${nextMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
-            setTimeout(() => speakNatural(question), 300);
-          }
+          // const nextMedication = activeMedications[currentIndex + 1];
+          // if (nextMedication) {
+          //   const question = `Medicamento: ${nextMedication.name}, ${nextMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
+          //   setTimeout(() => speakNatural(question), 300);
+          // }
         }
       }, 0);
     } else {
@@ -101,12 +97,11 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
       // Avanzar al siguiente medicamento si hay más
       if (currentIndex < activeMedications.length - 1) {
         setCurrentIndex(currentIndex + 1);
-        // Leer la pregunta del siguiente medicamento
-        const nextMedication = activeMedications[currentIndex + 1];
-        if (nextMedication) {
-          const question = `Medicamento: ${nextMedication.name}, ${nextMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
-          setTimeout(() => speakNatural(question), 300);
-        }
+        // const nextMedication = activeMedications[currentIndex + 1];
+        // if (nextMedication) {
+        //   const question = `Medicamento: ${nextMedication.name}, ${nextMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
+        //   setTimeout(() => speakNatural(question), 300);
+        // }
       }
     }, 0);
   };
@@ -115,12 +110,11 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
       setShowReasonModal(null);
-      // Leer la pregunta del medicamento anterior
-      const prevMedication = activeMedications[currentIndex - 1];
-      if (prevMedication) {
-        const question = `Medicamento: ${prevMedication.name}, ${prevMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
-        setTimeout(() => speakNatural(question), 300);
-      }
+      // const prevMedication = activeMedications[currentIndex - 1];
+      // if (prevMedication) {
+      //   const question = `Medicamento: ${prevMedication.name}, ${prevMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
+      //   setTimeout(() => speakNatural(question), 300);
+      // }
     }
   };
 
@@ -128,12 +122,11 @@ export function MedicationsSection({ medications, onMedicationRecord }: Medicati
     if (currentIndex < activeMedications.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowReasonModal(null);
-      // Leer la pregunta del siguiente medicamento
-      const nextMedication = activeMedications[currentIndex + 1];
-      if (nextMedication) {
-        const question = `Medicamento: ${nextMedication.name}, ${nextMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
-        setTimeout(() => speakNatural(question), 300);
-      }
+      // const nextMedication = activeMedications[currentIndex + 1];
+      // if (nextMedication) {
+      //   const question = `Medicamento: ${nextMedication.name}, ${nextMedication.dosage}. ¿Lo tomaste hoy? Responde sí o no.`;
+      //   setTimeout(() => speakNatural(question), 300);
+      // }
     }
   };
 

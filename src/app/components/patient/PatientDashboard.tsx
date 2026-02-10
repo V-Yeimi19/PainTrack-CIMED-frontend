@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { Patient, MedicationRecord } from '@/app/types';
 import { getPatientRecords } from '@/app/data/mockData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Dot, Label } from 'recharts';
-import { Calendar, Plus, LogOut, AlertTriangle, CalendarCheck, Activity, User } from 'lucide-react';
+import { Calendar, Plus, LogOut, AlertTriangle, CalendarCheck, Activity, User, Mic, MicOff } from 'lucide-react';
 import { MedicationsSection } from './MedicationsSection';
-import { speakNatural } from '@/app/utils/speech';
+import { connectGeminiLive, type ConnectionStatus } from '@/app/utils/geminiLive';
 
 interface PatientDashboardProps {
   patient: Patient;
@@ -30,20 +30,7 @@ export function PatientDashboard({ patient, onNewRecord, onRegisterPain, onLogou
   }
 
   const records = getPatientRecords(patient.dni);
-  
-  // Leer texto inicial cuando aparece el dashboard
-  useEffect(() => {
-    const initialText = `Hola, ${patient.name}. ¿Cómo te sientes hoy? Puedes registrar tu dolor, en el botón morado "Registrar cómo me siento". No olvides registrar, si es que tomaste tu medicamento al dar click en registrar medicamentos.`;
-    // Aumentar el delay para asegurar que el componente esté completamente montado
-    const timer = setTimeout(() => {
-      speakNatural(initialText);
-    }, 300);
-    
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [patient.name]);
-  
+
   // Obtener últimos 7 días
   const lastWeekRecords = records.slice(-7).map(record => ({
     date: new Date(record.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
@@ -85,6 +72,27 @@ export function PatientDashboard({ patient, onNewRecord, onRegisterPain, onLogou
   const feeling = getFeelingSummary();
   const needsAppointment = shouldRecommendAppointment();
   const daysSinceLastRecord = daysWithoutRecord();
+
+  // Asistente de voz Gemini (CIMED)
+  const [assistantStatus, setAssistantStatus] = useState<ConnectionStatus>('idle');
+  const [assistantError, setAssistantError] = useState<string | null>(null);
+  const [disconnectAssistant, setDisconnectAssistant] = useState<(() => void) | null>(null);
+
+  const handleConnectAssistant = useCallback(() => {
+    if (disconnectAssistant) {
+      disconnectAssistant();
+      setDisconnectAssistant(null);
+      setAssistantError(null);
+      return;
+    }
+    setAssistantError(null);
+    connectGeminiLive({
+      onStatus: (status) => setAssistantStatus(status),
+      onError: (msg) => setAssistantError(msg),
+    }).then((disconnect) => {
+      setDisconnectAssistant(() => disconnect);
+    });
+  }, [disconnectAssistant]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -215,6 +223,48 @@ export function PatientDashboard({ patient, onNewRecord, onRegisterPain, onLogou
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Asistente de voz IA (Gemini + CIMED) */}
+          <Card className="shadow-xl overflow-hidden bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-[hsl(270,81%,90%)]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-[hsl(270,81%,40%)] flex items-center gap-2">
+                <Mic className="w-6 h-6" />
+                Asistente de voz
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <p className="text-base text-gray-700 mb-4">
+                Habla con el asistente para dudas sobre el registro de dolor o tipos de dolor.
+              </p>
+              {assistantError && (
+                <Alert className="mb-4 border-amber-500 bg-amber-50">
+                  <AlertDescription className="text-sm text-amber-800">{assistantError}</AlertDescription>
+                </Alert>
+              )}
+              <Button
+                onClick={handleConnectAssistant}
+                disabled={assistantStatus === 'connecting'}
+                className="w-full h-12 sm:h-14 text-base font-bold bg-[hsl(270,70%,50%)] hover:bg-[hsl(270,70%,45%)] text-white"
+              >
+                {assistantStatus === 'connecting' && 'Conectando…'}
+                {disconnectAssistant != null && assistantStatus === 'connected' && (
+                  <>
+                    <MicOff className="w-5 h-5 mr-2" />
+                    Desconectar
+                  </>
+                )}
+                {!disconnectAssistant && assistantStatus !== 'connecting' && (
+                  <>
+                    <Mic className="w-5 h-5 mr-2" />
+                    {assistantStatus === 'error' ? 'Reintentar' : 'Hablar con Asistente IA'}
+                  </>
+                )}
+              </Button>
+              {assistantStatus === 'connected' && (
+                <p className="text-sm text-green-700 mt-3 font-medium">Conectado. Habla ahora.</p>
+              )}
             </CardContent>
           </Card>
 

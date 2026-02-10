@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainLevel, PainLocation, PainType } from '@/app/types';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 
 interface RegistrationSummaryProps {
   location: PainLocation;
@@ -20,11 +20,10 @@ export function RegistrationSummary({
   onContinue, 
   onFinish 
 }: RegistrationSummaryProps) {
-  // Leer el resumen en voz alta cuando se muestra
-  useEffect(() => {
-    const text = `Registro completado. Ubicación: ${location}. Nivel de dolor: ${painLevelLabels[painLevel]}. Tipo: ${types.join(', ')}.`;
-    speakNatural(text);
-  }, []);
+  // useEffect(() => {
+  //   const text = `Registro completado. Ubicación: ${location}. Nivel de dolor: ${painLevelLabels[painLevel]}. Tipo: ${types.join(', ')}.`;
+  //   speakNatural(text);
+  // }, []);
 
   const painLevelLabels: Record<PainLevel, string> = {
     0: 'No me duele',

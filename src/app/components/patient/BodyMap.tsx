@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 import { PainLocation } from '@/app/types';
 import {
   Dialog,
@@ -216,9 +216,8 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
         // Activar modo de selección libre
         setIsOtherMode(true);
         setSelectedLocation('Otro');
-        // Reproducir audio con instrucciones sobre el punto naranja
-        const message = "Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.";
-        speakNatural(message);
+        // const message = "Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.";
+        // speakNatural(message);
       }
       return;
     }
@@ -232,12 +231,12 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
       // Mostrar diálogo de sub-opciones
       setSubOptionsLocation(location);
       setShowSubOptions(true);
-      speakNatural(location);
+      // speakNatural(location);
     } else {
       // Mostrar diálogo normal con imagen
       setDialogLocation(location as PainLocation);
       setShowDialog(true);
-      speakNatural(location);
+      // speakNatural(location);
     }
   };
 
@@ -307,7 +306,7 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
     // Mostrar el diálogo con la imagen de la sub-opción seleccionada
     setDialogLocation(subOption as PainLocation);
     setShowDialog(true);
-    speakNatural(subOption);
+    // speakNatural(subOption);
   };
 
   const handleConfirmSelection = () => {
@@ -351,9 +350,8 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
   useEffect(() => {
     if (!showConfirmBubble || !pendingPoint) return;
 
-    // Leer pregunta cuando aparece el diálogo de confirmación
-    const question = `¿Confirmar este punto? Responde sí para confirmar o no para cancelar.`;
-    setTimeout(() => speakNatural(question), 100);
+    // const question = `¿Confirmar este punto? Responde sí para confirmar o no para cancelar.`;
+    // setTimeout(() => speakNatural(question), 100);
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;

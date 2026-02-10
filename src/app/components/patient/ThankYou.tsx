@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 
 interface ThankYouProps {
   onContinue: () => void;
@@ -9,10 +9,9 @@ interface ThankYouProps {
 }
 
 export function ThankYou({ onContinue, onFinish, hasMoreParts = true }: ThankYouProps) {
-  // Leer el mensaje en voz alta cuando se muestra
-  useEffect(() => {
-    speakNatural('¡Muchas gracias por contarnos cómo te sientes hoy!');
-  }, []);
+  // useEffect(() => {
+  //   speakNatural('¡Muchas gracias por contarnos cómo te sientes hoy!');
+  // }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-50 flex flex-col items-center justify-center p-6">

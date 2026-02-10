@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainType } from '@/app/types';
-import { speakNatural } from '@/app/utils/speech';
+// import { speakNatural } from '@/app/utils/speech';
 
 interface PainTypeSelectorProps {
   onSelect: (types: PainType[], otherText?: string) => void;
@@ -83,10 +83,10 @@ export function PainTypeSelector({ onSelect, onBack }: PainTypeSelectorProps) {
   }, [selectedTypes]);
 
   // Leer pregunta cuando aparece la pantalla
-  useEffect(() => {
-    const question = `¿Cómo es tu dolor? Elige cómo se siente tu dolor. Puedes seleccionar más de una opción tocando las tarjetas.`;
-    setTimeout(() => speakNatural(question), 100);
-  }, []);
+  // useEffect(() => {
+  //   const question = `¿Cómo es tu dolor? Elige cómo se siente tu dolor. Puedes seleccionar más de una opción tocando las tarjetas.`;
+  //   setTimeout(() => speakNatural(question), 100);
+  // }, []);
 
   const handleToggleType = (type: PainType) => {
     setSelectedTypes(prev => {
@@ -97,22 +97,21 @@ export function PainTypeSelector({ onSelect, onBack }: PainTypeSelectorProps) {
         // Actualizar estado primero para feedback visual inmediato
         const newTypes = [...prev, type];
         
-        // Reproducir audio después (no bloquea la UI)
-        setTimeout(() => {
-          const painTypeItem = painTypes.find(item => item.type === type);
-          if (painTypeItem) {
-            // Leer nombre y descripción
-            const fullText = `${painTypeItem.type}. ${painTypeItem.example}`;
-            speakNatural(fullText);
-          } else if (type === 'Otro') {
-            // Si es "Otro", leer el mensaje completo sobre el punto naranja
-            const message = "Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.";
-            speakNatural(message);
-          } else {
-            // Para otros tipos no encontrados, solo leer el nombre
-            speakNatural(type);
-          }
-        }, 0);
+        // setTimeout(() => {
+        //   const painTypeItem = painTypes.find(item => item.type === type);
+        //   if (painTypeItem) {
+        //     // Leer nombre y descripción
+        //     const fullText = `${painTypeItem.type}. ${painTypeItem.example}`;
+        //     speakNatural(fullText);
+        //   } else if (type === 'Otro') {
+        //     // Si es "Otro", leer el mensaje completo sobre el punto naranja
+        //     const message = "Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.";
+        //     speakNatural(message);
+        //   } else {
+        //     // Para otros tipos no encontrados, solo leer el nombre
+        //     speakNatural(type);
+        //   }
+        // }, 0);
         
         return newTypes;
       }
