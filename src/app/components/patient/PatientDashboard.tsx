@@ -268,9 +268,8 @@ export function PatientDashboard({
                   {/* Botón de nuevo registro (solo una vez al día) */}
                   <Button
                     onClick={onNewRecord}
-                    onFocus={() => !hasRegisteredToday && speakNatural('Registrar cómo me siento')}
                     disabled={hasRegisteredToday}
-                    className="w-full h-14 sm:h-16 lg:h-20 px-4 sm:px-6 lg:px-8 text-lg sm:text-xl lg:text-lg font-bold bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:opacity-60 disabled:cursor-not-allowed disabled:grayscale"
+                    className="w-full h-14 sm:h-16 lg:h-20 px-4 sm:px-6 lg:px-8 text-lg sm:text-xl lg:text-lg font-bold bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:opacity-60 disabled:cursor-not-allowed disabled:grayscale rounded-xl border-0"
                   >
                     {hasRegisteredToday ? 'Ya registraste hoy' : 'Registrar cómo me siento'}
                   </Button>
