@@ -119,9 +119,7 @@ const locationImages: Record<string, string> = {
   'Hombro derecho': '/images/cuerpo/Hombro adelante.png',
   'Hombro izquierdo': '/images/cuerpo/Hombro adelante.png',
   
-  // Sub-opciones
-  'Rodilla izquierda': '/images/cuerpo/rodilla derecha.png',
-  'Rodilla derecha': '/images/cuerpo/rodilla derecha.png',
+  // Sub-opciones (Rodilla izquierda/derecha ya definidas arriba)
   'Pecho superior': '/images/cuerpo/hombre_front-removebg-preview.png',
   'Pecho medio': '/images/cuerpo/hombre_front-removebg-preview.png',
   'Pecho inferior': '/images/cuerpo/hombre_front-removebg-preview.png',
@@ -145,8 +143,7 @@ const locationImages: Record<string, string> = {
   'Pierna izquierda': '/images/cuerpo/hombre_front-removebg-preview.png',
   'Pierna derecha': '/images/cuerpo/hombre_front-removebg-preview.png',
   'Muñeca izquierda': '/images/cuerpo/muñeca izquierda.png',
-  'Tobillo izquierdo': '/images/cuerpo/hombre_front-removebg-preview.png',
-  'Tobillo derecho': '/images/cuerpo/hombre_front-removebg-preview.png',
+  // Tobillo izquierdo/derecho ya definidos arriba
 };
 
 // Mapeo de partes generales a sub-opciones específicas
