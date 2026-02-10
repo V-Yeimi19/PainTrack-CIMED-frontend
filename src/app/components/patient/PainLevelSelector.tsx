@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainLevel } from '@/app/types';
-import { speakNatural } from '@/app/utils/speech';
 
 interface PainLevelSelectorProps {
   onSelect: (level: PainLevel) => void;
@@ -74,11 +73,7 @@ export function PainLevelSelector({ onSelect, onBack }: PainLevelSelectorProps) 
                   return (
                     <button
                       key={option.level}
-                      onClick={() => {
-                        speakNatural(option.label);
-                        setSelectedLevel(option.level as PainLevel);
-                      }}
-                      onFocus={() => speakNatural(option.label)}
+                      onClick={() => setSelectedLevel(option.level as PainLevel)}
                       className={`w-full flex items-center gap-3 sm:gap-6 p-4 sm:p-6 rounded-2xl transition-all duration-100 active:scale-[0.98] ${
                         isSelected 
                           ? `${selectedColors[option.level]} text-white shadow-xl scale-[1.02]` 

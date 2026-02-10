@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { PainType } from '@/app/types';
-import { speakNatural } from '@/app/utils/speech';
 
 interface PainTypeSelectorProps {
   onSelect: (types: PainType[], otherText?: string) => void;
@@ -93,7 +92,6 @@ export function PainTypeSelector({ onSelect, onBack }: PainTypeSelectorProps) {
       if (prev.includes(type)) {
         return prev.filter(t => t !== type);
       } else {
-        speakNatural(type);
         const newTypes = [...prev, type];
         
         // setTimeout(() => {

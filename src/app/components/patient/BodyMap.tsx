@@ -213,13 +213,11 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
         // Activar modo de selección libre
         setIsOtherMode(true);
         setSelectedLocation('Otro');
-        speakNatural('Otro. En la pantalla aparecerá un punto naranja que puedes ubicar en cualquier parte del cuerpo. Presiona sobre la parte que te duele.');
       }
       return;
     }
 
     setSelectedLocation(location);
-    speakNatural(location);
 
     // Verificar si esta parte tiene sub-opciones
     const subOptions = bodyPartSubOptions[location];
@@ -301,7 +299,6 @@ export function BodyMap({ gender, registeredLocations = [], customPoints: extern
     setShowSubOptions(false);
     setDialogLocation(subOption as PainLocation);
     setShowDialog(true);
-    speakNatural(subOption);
   };
 
   const handleConfirmSelection = () => {
