@@ -337,10 +337,10 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
         ['Edad:', `${selectedPatient.age} años`],
         ['Sexo:', selectedPatient.gender],
         ['Peso:', `${selectedPatient.weight} kg`],
-      ['Talla:', `${selectedPatient.height} m`],
-      ['IMC:', `${bmiData.bmi} (${bmiData.category})`],
-      ['Ocupación:', selectedPatient.occupation || 'No especificado'],
-      ['Idioma:', selectedPatient.nativeLanguage.join(', ')],
+        ['Talla:', `${selectedPatient.height} m`],
+        ['IMC:', `${bmiData.bmi} (${bmiData.category})`],
+        ['Ocupación:', selectedPatient.occupation || 'No especificado'],
+        ['Idioma:', selectedPatient.nativeLanguage.join(', ')],
     ];
 
       if (selectedPatient.referringDoctor) {

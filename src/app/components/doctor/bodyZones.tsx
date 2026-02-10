@@ -50,4 +50,6 @@ export const locationMap: Record<string, string> = {
   "Rodillas": "left_knee", // Por defecto mapea a rodilla izquierda (se podría mejorar)
   "Piernas": "left_knee", // Por defecto mapea a rodilla
   "Brazos": "left_shoulder", // Por defecto mapea a hombro
+  "Cabeza": "head",
+  "cabeza": "head",
 };
