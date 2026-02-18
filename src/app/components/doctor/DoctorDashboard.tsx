@@ -5,10 +5,10 @@ import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
-import { Doctor } from '@/app/types';
-import { mockPatients, getPatientRecords, addPainRecord } from '@/app/data/mockData';
-import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
+import { Doctor, MedicationRecord } from '@/app/types';
+import { mockPatients, getPatientRecords, addPainRecord, getMedicationRecords, getInterventionalTreatments } from '@/app/data/mockData';
+import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X, Pill, Syringe } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie, ScatterChart, Scatter, ComposedChart, ReferenceLine } from 'recharts';
 import ClinicalRow from '@/app/components/ui/clinicalRow';
 import { ConsultationForm, ConsultationData } from './ConsultationForm';
 import BodyHeatmap from './BodyHeatmap';
@@ -44,6 +44,8 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   const [refreshKey, setRefreshKey] = useState(0); // Para forzar actualización de registros
   const [showEditReferral, setShowEditReferral] = useState(false);
   const [referralData, setReferralData] = useState({ referringDoctor: '', whoRecommended: '' });
+  const [painDaysRange, setPainDaysRange] = useState<7 | 14 | 30>(30);
+  const [medDaysRange, setMedDaysRange] = useState<7 | 14 | 30>(30);
 
   const selectedPatient = selectedPatientDNI 
     ? patients.find(p => p.dni === selectedPatientDNI)
@@ -95,11 +97,16 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
     return 'Estable';
   };
 
-  // Gráfico de línea de evolución
-  const chartData = selectedRecords.slice(-10).map(record => ({
-    fecha: new Date(record.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
-    nivel: record.painLevel,
-  }));
+  // Gráfico de línea de evolución (filtrado por rango de días)
+  const painCutoffDate = new Date();
+  painCutoffDate.setDate(painCutoffDate.getDate() - painDaysRange);
+
+  const chartData = selectedRecords
+    .filter(r => new Date(r.date) >= painCutoffDate)
+    .map(record => ({
+      fecha: new Date(record.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
+      nivel: record.painLevel,
+    }));
 
   // Contar pacientes por estado
   const criticalCount = patients.filter(p => getPatientStatus(p.dni) === 'critical').length;
@@ -148,6 +155,15 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
       typeCounts[r.type] = (typeCounts[r.type] || 0) + 1;
     });
     const mostFrequentType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+    // Clasificación de dolor más frecuente
+    const classificationCounts: Record<string, number> = {};
+    selectedRecords.forEach(r => {
+      if (r.painClassification) {
+        classificationCounts[r.painClassification] = (classificationCounts[r.painClassification] || 0) + 1;
+      }
+    });
+    const mostFrequentClassification = Object.entries(classificationCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Sin clasificar';
     
     // Distribución por ubicación (para gráfico de torta)
     const locationData = Object.entries(locationCounts).map(([name, value]) => ({
@@ -173,12 +189,13 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
     
     const adherence = totalDays > 0 ? ((daysWithRecords / totalDays) * 100).toFixed(0) : '0';
     
-    return { 
-      avgPain, 
-      maxPain, 
-      minPain, 
-      mostAffectedLocation, 
+    return {
+      avgPain,
+      maxPain,
+      minPain,
+      mostAffectedLocation,
       mostFrequentType,
+      mostFrequentClassification,
       trend,
       recentAvg,
       locationData,
@@ -591,6 +608,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     painLevel: data.painLevel,
                     location: data.painLocation,
                     type: 'Molesto', // Valor por defecto, se puede ajustar
+                    painClassification: data.painClassification,
                     painDuration: data.painDuration,
                     painCause: data.painCause,
                   });
@@ -916,7 +934,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-3">
                   <div className="bg-orange-50 p-3 rounded-xl">
                     <p className="text-xs text-gray-600 mb-1 flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
@@ -924,10 +942,15 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     </p>
                     <p className="text-base sm:text-lg font-bold text-orange-700">{stats.mostAffectedLocation}</p>
                   </div>
-                  
+
                   <div className="bg-purple-50 p-3 rounded-xl">
                     <p className="text-xs text-gray-600 mb-1">Tipo frecuente</p>
                     <p className="text-base sm:text-lg font-bold text-purple-700">{stats.mostFrequentType}</p>
+                  </div>
+
+                  <div className="bg-indigo-50 p-3 rounded-xl">
+                    <p className="text-xs text-gray-600 mb-1">Clasificación frecuente</p>
+                    <p className="text-base sm:text-lg font-bold text-indigo-700">{stats.mostFrequentClassification}</p>
                   </div>
                 </div>
 
@@ -949,10 +972,27 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             {/* Gráfico de evolución */}
             <Card className="shadow-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl font-bold text-blue-900 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Evolución del Dolor
-                </CardTitle>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-blue-900 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Evolución del Dolor
+                  </CardTitle>
+                  <div className="flex gap-1">
+                    {([7, 14, 30] as const).map(days => (
+                      <button
+                        key={days}
+                        onClick={() => setPainDaysRange(days)}
+                        className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                          painDaysRange === days
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {days} días
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {chartData.length > 0 ? (
@@ -988,6 +1028,190 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                 )}
               </CardContent>
             </Card>
+
+            {/* Gráfica de Medicación y Tratamientos Intervencionistas */}
+            {selectedPatient.medications && selectedPatient.medications.length > 0 && (() => {
+              const medCutoffDate = new Date();
+              medCutoffDate.setDate(medCutoffDate.getDate() - medDaysRange);
+              const activeMeds = selectedPatient.medications!.filter(m => m.active);
+              const medIds = activeMeds.map(m => m.id);
+              const medRecords = getMedicationRecords(medIds).filter(r => new Date(r.date) >= medCutoffDate);
+              const interventions = getInterventionalTreatments(selectedPatient.dni).filter(t => new Date(t.date) >= medCutoffDate);
+
+              // También leer registros de localStorage (los que el paciente registró)
+              const lsKey = `painTrack_medicationRecords_${selectedPatient.dni}`;
+              let lsRecords: MedicationRecord[] = [];
+              try {
+                const stored = localStorage.getItem(lsKey);
+                if (stored) {
+                  lsRecords = JSON.parse(stored)
+                    .map((r: any) => ({ ...r, date: new Date(r.date) }))
+                    .filter((r: MedicationRecord) => new Date(r.date) >= medCutoffDate);
+                }
+              } catch { /* ignore */ }
+
+              const allMedRecords = [...medRecords, ...lsRecords];
+
+              // Agrupar por fecha: % adherencia por día
+              const dateMap: Record<string, { taken: number; total: number }> = {};
+              allMedRecords.forEach(r => {
+                const key = new Date(r.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                if (!dateMap[key]) dateMap[key] = { taken: 0, total: 0 };
+                dateMap[key].total += 1;
+                if (r.taken) dateMap[key].taken += 1;
+              });
+
+              // Fechas de intervenciones
+              const interventionDates = new Set(
+                interventions.map(t => new Date(t.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }))
+              );
+
+              // Recopilar todas las fechas (medicación + intervenciones)
+              const allDates = new Set([
+                ...Object.keys(dateMap),
+                ...interventions.map(t => new Date(t.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }))
+              ]);
+
+              const medChartData = Array.from(allDates)
+                .sort((a, b) => {
+                  const [dA, mA] = a.split('/').map(Number);
+                  const [dB, mB] = b.split('/').map(Number);
+                  return mA !== mB ? mA - mB : dA - dB;
+                })
+                .map(fecha => {
+                  const med = dateMap[fecha];
+                  const adherencia = med ? Math.round((med.taken / med.total) * 100) : null;
+                  const intervention = interventions.find(
+                    t => new Date(t.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) === fecha
+                  );
+                  return {
+                    fecha,
+                    adherencia,
+                    intervencion: intervention ? (adherencia ?? 50) : null,
+                    procedimiento: intervention?.procedure || null,
+                    notas: intervention?.notes || null,
+                  };
+                });
+
+              return (
+                <Card className="shadow-xl">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <CardTitle className="text-lg sm:text-xl font-bold text-blue-900 flex items-center gap-2">
+                        <Pill className="w-5 h-5" />
+                        Medicación y Tratamientos Intervencionistas
+                      </CardTitle>
+                      <div className="flex gap-1">
+                        {([7, 14, 30] as const).map(days => (
+                          <button
+                            key={days}
+                            onClick={() => setMedDaysRange(days)}
+                            className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                              medDaysRange === days
+                                ? 'bg-blue-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {days} días
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                        <span className="text-xs text-gray-600">Adherencia medicación (%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '10px solid #e11d48' }}></div>
+                        <span className="text-xs text-gray-600">Tratamiento intervencionista</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {medChartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={280}>
+                        <ComposedChart data={medChartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="fecha"
+                            style={{ fontSize: '12px', fontWeight: 'bold' }}
+                          />
+                          <YAxis
+                            domain={[0, 100]}
+                            tickFormatter={(v) => `${v}%`}
+                            style={{ fontSize: '12px', fontWeight: 'bold' }}
+                          />
+                          <Tooltip
+                            contentStyle={{ fontSize: '13px' }}
+                            formatter={(value: any, name: string) => {
+                              if (name === 'adherencia') return [`${value}%`, 'Adherencia'];
+                              if (name === 'intervencion') return ['', 'Intervención'];
+                              return [value, name];
+                            }}
+                            labelFormatter={(label: string, payload: any[]) => {
+                              const item = payload?.[0]?.payload;
+                              if (item?.procedimiento) {
+                                return `${label} — ${item.procedimiento}${item.notas ? `: ${item.notas}` : ''}`;
+                              }
+                              return label;
+                            }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="adherencia"
+                            stroke="#06b6d4"
+                            strokeWidth={3}
+                            dot={{ fill: '#06b6d4', r: 5 }}
+                            activeDot={{ r: 7 }}
+                            connectNulls
+                          />
+                          <Scatter
+                            dataKey="intervencion"
+                            fill="#e11d48"
+                            shape={(props: any) => {
+                              const { cx, cy } = props;
+                              if (cx == null || cy == null) return null;
+                              return (
+                                <polygon
+                                  points={`${cx},${cy - 10} ${cx + 8},${cy + 6} ${cx - 8},${cy + 6}`}
+                                  fill="#e11d48"
+                                  stroke="#9f1239"
+                                  strokeWidth={1.5}
+                                />
+                              );
+                            }}
+                          />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="text-center py-12">
+                        <p className="text-lg text-gray-500">No hay datos disponibles para este período</p>
+                      </div>
+                    )}
+
+                    {/* Lista de intervenciones */}
+                    {interventions.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-sm font-bold text-gray-700">Tratamientos intervencionistas realizados:</p>
+                        {interventions.map(t => (
+                          <div key={t.id} className="flex items-start gap-2 bg-rose-50 p-2 rounded-lg border border-rose-200">
+                            <Syringe className="w-4 h-4 text-rose-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-semibold text-rose-800">{t.procedure}</p>
+                              <p className="text-xs text-gray-600">
+                                {new Date(t.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {t.notes && ` — ${t.notes}`}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Mapa de calor corporal - Distribución por ubicación */}
             {stats.locationData.length > 0 && (
@@ -1133,33 +1357,52 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                       className="bg-white p-3 rounded-xl border-2 border-gray-200"
                     >
                       <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-xs text-gray-600">Fecha</p>
-                            <p className="font-bold text-base">
-                              {new Date(record.date).toLocaleDateString('es-ES', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                              })}
-                            </p>
+                        <div className="grid grid-cols-3 gap-3 text-sm">
+                          {/* Columna 1: Fecha y Ubicación */}
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-xs text-gray-600">Fecha</p>
+                              <p className="font-bold text-base">
+                                {new Date(record.date).toLocaleDateString('es-ES', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600">Ubicación del dolor</p>
+                              <p className="font-bold text-base">{record.location}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-gray-600">Nivel</p>
-                            <p 
-                              className="font-bold text-lg"
-                              style={{ color: getPainColor(record.painLevel) }}
-                            >
-                              {record.painLevel}/10
-                            </p>
+                          {/* Columna 2: Nivel y Tipo */}
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-xs text-gray-600">Nivel</p>
+                              <p
+                                className="font-bold text-lg"
+                                style={{ color: getPainColor(record.painLevel) }}
+                              >
+                                {record.painLevel}/10
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600">Tipo de dolor</p>
+                              <p className="font-bold text-base">{record.type}</p>
+                            </div>
                           </div>
+                          {/* Columna 3: Clasificación */}
                           <div>
-                            <p className="text-xs text-gray-600">Ubicación del dolor</p>
-                            <p className="font-bold text-base">{record.location}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-600">Tipo de dolor</p>
-                            <p className="font-bold text-base">{record.type}</p>
+                            <p className="text-xs text-gray-600">Clasificación del dolor</p>
+                            <Badge className={`mt-1 text-xs font-semibold ${
+                              record.painClassification === 'Somático' ? 'bg-blue-100 text-blue-800' :
+                              record.painClassification === 'Visceral' ? 'bg-amber-100 text-amber-800' :
+                              record.painClassification === 'Neuropático' ? 'bg-rose-100 text-rose-800' :
+                              record.painClassification === 'Mixto' ? 'bg-indigo-100 text-indigo-800' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {record.painClassification || 'Sin clasificar'}
+                            </Badge>
                           </div>
                         </div>
                         {record.painDuration && (

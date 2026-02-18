@@ -72,12 +72,14 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               >
                 Soy Paciente
               </Button>
-              <Button
-                onClick={() => setRole('doctor')}
-                className="w-full h-20 text-xl font-semibold flex items-center justify-center text-white bg-gradient-to-r from-[hsl(270,70%,50%)]/60 to-[hsl(270,70%,45%)]/60 hover:from-[hsl(270,70%,45%)]/70 hover:to-[hsl(270,70%,40%)]/70 transition-all rounded-xl border-0 border-[hsl(270,70%,50%)]/40"
-              >
-                Soy Médico
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setRole('doctor')}
+                  className="w-40 h-13 font-medium flex items-center justify-center text-white bg-gradient-to-r from-[hsl(270,70%,50%)]/60 to-[hsl(270,70%,45%)]/60 hover:from-[hsl(270,70%,45%)]/70 hover:to-[hsl(270,70%,40%)]/70 transition-all rounded-xl border-0 border-[hsl(270,70%,50%)]/40"
+                >
+                  Soy Médico
+                </Button>
+              </div>
             </div>
           </div>
         </div>

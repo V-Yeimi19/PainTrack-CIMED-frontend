@@ -54,6 +54,8 @@ export type PainType =
   | "Tirante"
   | "Otro";
 
+export type PainClassification = "Somático" | "Visceral" | "Neuropático" | "Mixto";
+
 export interface PainRecord {
   id: string;
   patientDNI: string;
@@ -61,6 +63,7 @@ export interface PainRecord {
   painLevel: PainLevel;
   location: PainLocation;
   type: PainType;
+  painClassification?: PainClassification;
   painDuration?: string; // Por cuánto tiempo tiene este dolor
   painCause?: {
     lesion?: boolean;
@@ -113,6 +116,14 @@ export interface MedicationRecord {
   taken: boolean; // Si lo tomó hoy
   reasonNotTaken?: "Me olvidé" | "Me sentí mal" | "No lo tenía" | "Otro";
   otherReason?: string; // Si eligió "Otro"
+}
+
+export interface InterventionalTreatment {
+  id: string;
+  patientDNI: string;
+  date: Date;
+  procedure: string; // Ej: "Bloqueo nervioso", "Infiltración", "Radiofrecuencia"
+  notes?: string;
 }
 
 export interface Doctor {
