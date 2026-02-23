@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Login } from '@/app/components/Login';
 import { Welcome } from '@/app/components/patient/Welcome';
 import { PainLevelSelector } from '@/app/components/patient/PainLevelSelector';
@@ -11,7 +11,7 @@ import { RegistrationSummary } from '@/app/components/patient/RegistrationSummar
 import { PatientDashboard } from '@/app/components/patient/PatientDashboard';
 import { PatientProfile } from '@/app/components/patient/PatientProfile';
 import { PatientAnalisis } from '@/app/components/patient/PatientAnalisis';
-import { DoctorDashboard } from '@/app/components/doctor/DoctorDashboard';
+const DoctorDashboard = lazy(() => import('@/app/components/doctor/DoctorDashboard').then(m => ({ default: m.DoctorDashboard })));
 import { Patient, Doctor, PainLevel, PainLocation, PainType, MedicationRecord } from '@/app/types';
 import { addPainRecord, getPatientRecords, updatePatient } from '@/app/data/mockData';
 import { CustomPoint } from '@/app/components/patient/BodyMap';
@@ -774,7 +774,11 @@ export default function App() {
   }
 
   if (state.screen === 'doctor-dashboard') {
-    return <DoctorDashboard doctor={state.doctor} onLogout={handleLogout} />;
+    return (
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><p className="text-xl">Cargando...</p></div>}>
+        <DoctorDashboard doctor={state.doctor} onLogout={handleLogout} />
+      </Suspense>
+    );
   }
 
   return null;

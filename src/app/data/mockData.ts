@@ -1,4 +1,4 @@
-import { Patient, Doctor, PainRecord, Medication } from "@/app/types";
+import { Patient, Doctor, PainRecord, Medication, MedicationRecord, InterventionalTreatment } from "@/app/types";
 
 export const mockDoctors: Doctor[] = [
   {
@@ -101,102 +101,113 @@ export const mockPatients: Patient[] = [
 
 // María González: evolución ascendente hasta patrón crítico (mockup para demo)
 export const mockPainRecords: PainRecord[] = [
-  { id: "1", patientDNI: "12345678", date: new Date(2026, 1, 3), painLevel: 2, location: "Rodillas", type: "Sordo" },
-  { id: "2", patientDNI: "12345678", date: new Date(2026, 1, 4), painLevel: 3, location: "Rodillas", type: "Sordo" },
-  { id: "3", patientDNI: "12345678", date: new Date(2026, 1, 5), painLevel: 4, location: "Espalda", type: "Punzante" },
-  { id: "4", patientDNI: "12345678", date: new Date(2026, 1, 6), painLevel: 5, location: "Espalda", type: "Punzante" },
-  { id: "5", patientDNI: "12345678", date: new Date(2026, 1, 7), painLevel: 6, location: "Rodillas", type: "Punzante" },
-  { id: "6", patientDNI: "12345678", date: new Date(2026, 1, 8), painLevel: 8, location: "Espalda", type: "Quemante" },
-  { id: "7", patientDNI: "12345678", date: new Date(2026, 1, 9), painLevel: 10, location: "Espalda", type: "Quemante" },
+  { id: "1", patientDNI: "12345678", date: new Date(2026, 0, 22), painLevel: 2, location: "Rodillas", type: "Sordo", painClassification: "Somático" },
+  { id: "2", patientDNI: "12345678", date: new Date(2026, 0, 26), painLevel: 3, location: "Rodillas", type: "Sordo", painClassification: "Somático" },
+  { id: "3", patientDNI: "12345678", date: new Date(2026, 1, 1), painLevel: 4, location: "Espalda", type: "Punzante", painClassification: "Neuropático" },
+  { id: "4", patientDNI: "12345678", date: new Date(2026, 1, 5), painLevel: 5, location: "Espalda", type: "Punzante", painClassification: "Neuropático" },
+  { id: "5", patientDNI: "12345678", date: new Date(2026, 1, 10), painLevel: 6, location: "Rodillas", type: "Punzante", painClassification: "Mixto" },
+  { id: "6", patientDNI: "12345678", date: new Date(2026, 1, 14), painLevel: 8, location: "Espalda", type: "Quemante", painClassification: "Neuropático" },
+  { id: "7", patientDNI: "12345678", date: new Date(2026, 1, 17), painLevel: 10, location: "Espalda", type: "Quemante", painClassification: "Mixto" },
   // Registros para Juan Pérez - mostrando aumento crítico
   {
     id: "8",
     patientDNI: "87654321",
-    date: new Date(2026, 0, 18),
+    date: new Date(2026, 0, 25),
     painLevel: 4,
     location: "Espalda",
     type: "Molesto",
+    painClassification: "Somático",
   },
   {
     id: "9",
     patientDNI: "87654321",
-    date: new Date(2026, 0, 19),
+    date: new Date(2026, 0, 30),
     painLevel: 5,
     location: "Espalda",
     type: "Constante",
+    painClassification: "Somático",
   },
   {
     id: "10",
     patientDNI: "87654321",
-    date: new Date(2026, 0, 20),
+    date: new Date(2026, 1, 4),
     painLevel: 6,
     location: "Espalda",
     type: "Punzante",
+    painClassification: "Neuropático",
   },
   {
     id: "11",
     patientDNI: "87654321",
-    date: new Date(2026, 0, 21),
+    date: new Date(2026, 1, 9),
     painLevel: 7,
     location: "Espalda",
     type: "Fuerte",
+    painClassification: "Mixto",
   },
   {
     id: "12",
     patientDNI: "87654321",
-    date: new Date(2026, 0, 22),
+    date: new Date(2026, 1, 13),
     painLevel: 9,
     location: "Espalda",
     type: "Ardor",
+    painClassification: "Neuropático",
   },
   {
     id: "13",
     patientDNI: "87654321",
-    date: new Date(2026, 0, 23),
+    date: new Date(2026, 1, 16),
     painLevel: 8,
     location: "Piernas",
     type: "Intermitente",
+    painClassification: "Visceral",
   },
   // Registros para Ana Martínez - paciente estable
   {
     id: "14",
     patientDNI: "11223344",
-    date: new Date(2026, 0, 19),
+    date: new Date(2026, 0, 24),
     painLevel: 2,
     location: "Cabeza",
     type: "Molesto",
+    painClassification: "Somático",
   },
   {
     id: "15",
     patientDNI: "11223344",
-    date: new Date(2026, 0, 20),
+    date: new Date(2026, 1, 2),
     painLevel: 1,
     location: "Cabeza",
     type: "Molesto",
+    painClassification: "Somático",
   },
   {
     id: "16",
     patientDNI: "11223344",
-    date: new Date(2026, 0, 21),
+    date: new Date(2026, 1, 8),
     painLevel: 2,
     location: "Rodillas",
     type: "Molesto",
+    painClassification: "Somático",
   },
   {
     id: "17",
     patientDNI: "11223344",
-    date: new Date(2026, 0, 22),
+    date: new Date(2026, 1, 12),
     painLevel: 1,
     location: "Rodillas",
     type: "Molesto",
+    painClassification: "Somático",
   },
   {
     id: "18",
     patientDNI: "11223344",
-    date: new Date(2026, 0, 23),
+    date: new Date(2026, 1, 17),
     painLevel: 2,
     location: "Espalda",
     type: "Intermitente",
+    painClassification: "Visceral",
   },
 ];
 
@@ -226,4 +237,61 @@ export const addPainRecord = (record: Omit<PainRecord, "id">): PainRecord => {
   };
   mockPainRecords.push(newRecord);
   return newRecord;
+};
+
+// ═══════════════════════════════════════════════════════════════
+// Registros de medicación mock (para gráfica del médico)
+// ═══════════════════════════════════════════════════════════════
+export const mockMedicationRecords: MedicationRecord[] = [
+  // María González — med1: Paracetamol, med2: Naproxeno
+  { medicationId: "med1", date: new Date(2026, 0, 22), taken: true },
+  { medicationId: "med2", date: new Date(2026, 0, 22), taken: true },
+  { medicationId: "med1", date: new Date(2026, 0, 26), taken: true },
+  { medicationId: "med2", date: new Date(2026, 0, 26), taken: false, reasonNotTaken: "Me olvidé" },
+  { medicationId: "med1", date: new Date(2026, 1, 1), taken: true },
+  { medicationId: "med2", date: new Date(2026, 1, 1), taken: true },
+  { medicationId: "med1", date: new Date(2026, 1, 5), taken: false, reasonNotTaken: "No lo tenía" },
+  { medicationId: "med2", date: new Date(2026, 1, 5), taken: true },
+  { medicationId: "med1", date: new Date(2026, 1, 10), taken: true },
+  { medicationId: "med2", date: new Date(2026, 1, 10), taken: true },
+  { medicationId: "med1", date: new Date(2026, 1, 14), taken: true },
+  { medicationId: "med2", date: new Date(2026, 1, 14), taken: true },
+  { medicationId: "med1", date: new Date(2026, 1, 17), taken: true },
+  { medicationId: "med2", date: new Date(2026, 1, 17), taken: false, reasonNotTaken: "Me sentí mal" },
+  // Juan Pérez — med3: Ibuprofeno
+  { medicationId: "med3", date: new Date(2026, 0, 25), taken: true },
+  { medicationId: "med3", date: new Date(2026, 0, 30), taken: true },
+  { medicationId: "med3", date: new Date(2026, 1, 4), taken: false, reasonNotTaken: "Me olvidé" },
+  { medicationId: "med3", date: new Date(2026, 1, 9), taken: true },
+  { medicationId: "med3", date: new Date(2026, 1, 13), taken: true },
+  { medicationId: "med3", date: new Date(2026, 1, 16), taken: false, reasonNotTaken: "No lo tenía" },
+  // Ana Martínez — med4: Paracetamol
+  { medicationId: "med4", date: new Date(2026, 0, 24), taken: true },
+  { medicationId: "med4", date: new Date(2026, 1, 2), taken: true },
+  { medicationId: "med4", date: new Date(2026, 1, 8), taken: false, reasonNotTaken: "Me sentí mal" },
+  { medicationId: "med4", date: new Date(2026, 1, 12), taken: true },
+  { medicationId: "med4", date: new Date(2026, 1, 17), taken: true },
+];
+
+/** Obtiene registros de medicación mock para un paciente (por IDs de medicamentos). */
+export const getMedicationRecords = (medicationIds: string[]): MedicationRecord[] => {
+  return mockMedicationRecords.filter((r) => medicationIds.includes(r.medicationId));
+};
+
+// ═══════════════════════════════════════════════════════════════
+// Tratamientos intervencionistas mock
+// ═══════════════════════════════════════════════════════════════
+export const mockInterventionalTreatments: InterventionalTreatment[] = [
+  // María González
+  { id: "it1", patientDNI: "12345678", date: new Date(2026, 1, 1), procedure: "Bloqueo nervioso", notes: "Bloqueo facetario L4-L5" },
+  { id: "it2", patientDNI: "12345678", date: new Date(2026, 1, 14), procedure: "Infiltración", notes: "Infiltración con corticoides en rodilla derecha" },
+  // Juan Pérez
+  { id: "it3", patientDNI: "87654321", date: new Date(2026, 1, 4), procedure: "Radiofrecuencia", notes: "Radiofrecuencia pulsada lumbar" },
+  { id: "it4", patientDNI: "87654321", date: new Date(2026, 1, 13), procedure: "Bloqueo epidural" },
+  // Ana Martínez
+  { id: "it5", patientDNI: "11223344", date: new Date(2026, 1, 8), procedure: "Infiltración", notes: "Infiltración articular en rodilla izquierda" },
+];
+
+export const getInterventionalTreatments = (dni: string): InterventionalTreatment[] => {
+  return mockInterventionalTreatments.filter((t) => t.patientDNI === dni);
 };

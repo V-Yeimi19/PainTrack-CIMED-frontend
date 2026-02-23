@@ -8,7 +8,38 @@ export type PainLocation =
   | "Estómago"
   | "Brazos"
   | "Piernas"
-  | "Otro";
+  | "Otro"
+  // Ubicaciones específicas para el mapa de calor
+  | "pecho"
+  | "espalda alta"
+  | "espalda baja"
+  | "cadera"
+  | "hombro izquierdo"
+  | "hombro derecho"
+  | "biceps izquierdo"
+  | "biceps derecho"
+  | "antebrazo izquierdo"
+  | "antebrazo derecho"
+  | "muñeca izquierda"
+  | "muñeca derecha"
+  | "palma izquierda"
+  | "palma derecha"
+  | "codo izquierdo"
+  | "codo derecho"
+  | "rodilla izquierda"
+  | "rodilla derecha"
+  | "tobillo izquierdo"
+  | "tobillo derecho"
+  | "talon izquierdo"
+  | "talon derecho"
+  | "planta izquierda"
+  | "planta derecha"
+  | "empeine izquierdo"
+  | "empeine derecho"
+  | "muslo posterior izquierdo"
+  | "muslo posterior derecho"
+  | "dorso izquierdo"
+  | "dorso derecho";
 
 export type PainType =
   | "Apretado"
@@ -23,6 +54,8 @@ export type PainType =
   | "Tirante"
   | "Otro";
 
+export type PainClassification = "Somático" | "Visceral" | "Neuropático" | "Mixto";
+
 export interface PainRecord {
   id: string;
   patientDNI: string;
@@ -30,6 +63,7 @@ export interface PainRecord {
   painLevel: PainLevel;
   location: PainLocation;
   type: PainType;
+  painClassification?: PainClassification;
   painDuration?: string; // Por cuánto tiempo tiene este dolor
   painCause?: {
     lesion?: boolean;
@@ -82,6 +116,14 @@ export interface MedicationRecord {
   taken: boolean; // Si lo tomó hoy
   reasonNotTaken?: "Me olvidé" | "Me sentí mal" | "No lo tenía" | "Otro";
   otherReason?: string; // Si eligió "Otro"
+}
+
+export interface InterventionalTreatment {
+  id: string;
+  patientDNI: string;
+  date: Date;
+  procedure: string; // Ej: "Bloqueo nervioso", "Infiltración", "Radiofrecuencia"
+  notes?: string;
 }
 
 export interface Doctor {

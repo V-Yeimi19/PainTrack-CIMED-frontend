@@ -7,7 +7,7 @@ import { Label } from '@/app/components/ui/label';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/tabs';
-import { Patient, PainLevel, PainLocation } from '@/app/types';
+import { Patient, PainLevel, PainLocation, PainClassification } from '@/app/types';
 import { BodyMap } from '@/app/components/patient/BodyMap';
 import { Save, X } from 'lucide-react';
 
@@ -32,6 +32,7 @@ export interface ConsultationData {
     noSabe?: boolean;
   };
   painLevel?: PainLevel;
+  painClassification?: PainClassification;
   painLocationMap?: PainLocation[];
   customPoints?: any[];
   conclusivePathology?: string; // Patología concluyente después de registrar el dolor
@@ -356,6 +357,28 @@ export function ConsultationForm({ patient, onSave, onCancel }: ConsultationForm
                     })}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Clasificación del dolor */}
+            <div>
+              <Label className="text-lg font-semibold text-gray-700 mb-2 block">
+                5) Clasificación del dolor:
+              </Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {(['Somático', 'Visceral', 'Neuropático', 'Mixto'] as PainClassification[]).map((classification) => (
+                  <button
+                    key={classification}
+                    onClick={() => handleInputChange('painClassification', classification)}
+                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      formData.painClassification === classification
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
+                    }`}
+                  >
+                    <p className="text-base font-bold text-gray-800">{classification}</p>
+                  </button>
+                ))}
               </div>
             </div>
 
