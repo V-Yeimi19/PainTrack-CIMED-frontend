@@ -23,8 +23,12 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
 
   const handlePatientLogin = () => {
     const patient = findPatientByDNI(dni);
-    if (patient && patient.dni === dni) {
-      onPatientLogin(patient);
+    if (patient) {
+      if (patient.password && patient.password !== patientPassword) {
+        setError('DNI o contraseña incorrectos. Prueba con: 12345678 / 1234');
+      } else {
+        onPatientLogin(patient);
+      }
     } else {
       setError('DNI no encontrado. Prueba con: 12345678');
     }
@@ -199,7 +203,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               <Button
                 onClick={handlePatientLogin}
                 className="w-full h-14 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0 shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:shadow-none"
-                disabled={dni.length < 7}
+                disabled={dni.length < 7 || !patientPassword}
               >
                 Continuar
               </Button>
