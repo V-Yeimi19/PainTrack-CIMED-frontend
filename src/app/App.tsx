@@ -10,6 +10,7 @@ import { AssistantIntro } from '@/app/components/patient/AssistantIntro';
 import { RegistrationSummary } from '@/app/components/patient/RegistrationSummary';
 import { PatientDashboard } from '@/app/components/patient/PatientDashboard';
 import { PatientProfile } from '@/app/components/patient/PatientProfile';
+import { PatientAnalisis } from '@/app/components/patient/PatientAnalisis';
 import { DoctorDashboard } from '@/app/components/doctor/DoctorDashboard';
 import { Patient, Doctor, PainLevel, PainLocation, PainType, MedicationRecord } from '@/app/types';
 import { addPainRecord, getPatientRecords, updatePatient } from '@/app/data/mockData';
@@ -146,6 +147,7 @@ type AppState =
   | { screen: 'login' }
   | { screen: 'patient-dashboard'; patient: Patient; medicationRecordsVersion?: number; urgentRequestVersion?: number }
   | { screen: 'patient-profile'; patient: Patient }
+  | { screen: 'patient-analisis'; patient: Patient }
   | { screen: 'patient-welcome'; patient: Patient }
   | { screen: 'patient-pain-location'; patient: Patient; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[]; isNewRecord?: boolean; remainingTreatedParts?: PainLocation[]; isPreConsultFlow?: boolean }
   | { screen: 'patient-pain-level'; patient: Patient; location: PainLocation; registeredLocations?: PainLocation[]; customPoints?: CustomPoint[]; isNewRecord?: boolean; remainingTreatedParts?: PainLocation[]; isPreConsultFlow?: boolean }
@@ -743,6 +745,7 @@ export default function App() {
         <PatientProfile
           patient={state.patient}
           onBack={() => setState({ screen: 'patient-dashboard', patient: state.patient })}
+          onViewAnalisis={() => setState({ screen: 'patient-analisis', patient: state.patient })}
           onPatientUpdate={(updated) => {
             updatePatient(updated);
             setState((s) => ({ ...s, patient: updated }));
@@ -755,6 +758,18 @@ export default function App() {
           onConnectAssistant={handleConnectAssistant}
         />
       </>
+    );
+  }
+
+  if (state.screen === 'patient-analisis') {
+    if (!state.patient) {
+      return <Login onPatientLogin={handlePatientLogin} onDoctorLogin={handleDoctorLogin} />;
+    }
+    return (
+      <PatientAnalisis
+        patient={state.patient}
+        onBack={() => setState({ screen: 'patient-profile', patient: state.patient })}
+      />
     );
   }
 

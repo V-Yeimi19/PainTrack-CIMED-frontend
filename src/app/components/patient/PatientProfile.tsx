@@ -3,16 +3,17 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Patient, PainLevel } from '@/app/types';
 import { getPatientRecords } from '@/app/data/mockData';
-import { ArrowLeft, User, Calendar, UserCircle, CreditCard, Briefcase, FileText, Megaphone } from 'lucide-react';
+import { ArrowLeft, User, Calendar, UserCircle, CreditCard, Briefcase, FileText, Megaphone, BarChart3 } from 'lucide-react';
 import { speakNatural } from '@/app/utils/speech';
 
 interface PatientProfileProps {
   patient: Patient;
   onBack: () => void;
+  onViewAnalisis?: () => void;
   onPatientUpdate?: (patient: Patient) => void;
 }
 
-export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProfileProps) {
+export function PatientProfile({ patient, onBack, onViewAnalisis, onPatientUpdate }: PatientProfileProps) {
   const [occupation, setOccupation] = useState(patient.occupation ?? '');
   const [heatmapView, setHeatmapView] = useState<'frente' | 'espalda'>('frente');
 
@@ -103,18 +104,30 @@ export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProf
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-4 mb-6 sm:mb-8">
-          <Button
-            onClick={onBack}
-            variant="outline"
-            className="h-12 sm:h-16 px-4 sm:px-6 text-xl sm:text-2xl font-bold"
-          >
-            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
-            VOLVER
-          </Button>
-          <h1 className="text-3xl sm:text-5xl font-bold text-purple-900">
-            Mi Perfil
-          </h1>
+        <div className="flex items-center justify-between gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={onBack}
+              variant="outline"
+              className="h-12 sm:h-16 px-4 sm:px-6 text-xl sm:text-2xl font-bold"
+            >
+              <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+              VOLVER
+            </Button>
+            <h1 className="text-3xl sm:text-5xl font-bold text-purple-900">
+              Mi Perfil
+            </h1>
+          </div>
+          {onViewAnalisis && (
+            <Button
+              onClick={onViewAnalisis}
+              variant="outline"
+              className="h-12 sm:h-14 px-4 sm:px-6 text-base sm:text-lg font-semibold flex items-center gap-2 flex-shrink-0"
+            >
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
+              Ver mis análisis
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -280,7 +293,7 @@ export function PatientProfile({ patient, onBack, onPatientUpdate }: PatientProf
           </Card>
 
           {/* Evolución del dolor (antes "Dolor Inicial") */}
-          <Card className="shadow-xl">
+          <Card id="analisis" className="shadow-xl">
             <CardHeader>
               <CardTitle className="text-2xl sm:text-3xl font-bold text-purple-900">
                 Evolución del dolor
