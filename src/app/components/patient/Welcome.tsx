@@ -1,5 +1,4 @@
 import { Button } from '@/app/components/ui/button';
-import { speakNatural } from '@/app/utils/speech';
 
 interface WelcomeProps {
   onStart: () => void;
@@ -58,8 +57,7 @@ export function Welcome({ onStart, patientName }: WelcomeProps) {
         <div className="pt-6 lg:pt-4">
           <Button
             onClick={onStart}
-            onFocus={() => speakNatural('Empezar')}
-            className="w-full max-w-xs mx-auto h-12 sm:h-14 md:h-16 lg:h-18 text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,50%)] via-[hsl(270,70%,48%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:via-[hsl(270,70%,43%)] hover:to-[hsl(270,70%,40%)] rounded-2xl shadow-[0_4px_20px_rgba(147,51,234,0.3),0_0_0_1px_rgba(147,51,234,0.1)] hover:shadow-[0_8px_30px_rgba(147,51,234,0.4),0_0_0_1px_rgba(147,51,234,0.15)] transition-all duration-100 ease-out transform hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full max-w-xs mx-auto h-12 sm:h-14 md:h-16 lg:h-18 text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,50%)] via-[hsl(270,70%,48%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:via-[hsl(270,70%,43%)] hover:to-[hsl(270,70%,40%)] rounded-2xl shadow-[0_4px_20px_rgba(147,51,234,0.3),0_0_0_1px_rgba(147,51,234,0.1)] hover:shadow-[0_8px_30px_rgba(147,51,234,0.4),0_0_0_1px_rgba(147,51,234,0.15)] transition-all duration-100 ease-out transform hover:scale-[1.02] active:scale-[0.98] border-0"
           >
             EMPEZAR
           </Button>

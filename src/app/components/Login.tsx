@@ -4,7 +4,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { findPatientByDNI, findDoctorByCode } from '@/app/data/mockData';
 import { Patient, Doctor } from '@/app/types';
-import { User, Stethoscope, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { User, Stethoscope, ArrowLeft } from 'lucide-react';
 
 interface LoginProps {
   onPatientLogin: (patient: Patient) => void;
@@ -20,13 +20,15 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
   const [doctorCode, setDoctorCode] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPatientPassword, setShowPatientPassword] = useState(false);
 
   const handlePatientLogin = () => {
     const patient = findPatientByDNI(dni);
-    if (patient && patient.dni === dni) {
-      onPatientLogin(patient);
+    if (patient) {
+      if (patient.password && patient.password !== patientPassword) {
+        setError('DNI o contraseña incorrectos. Prueba con: 12345678 / 1234');
+      } else {
+        onPatientLogin(patient);
+      }
     } else {
       setError('DNI no encontrado. Prueba con: 12345678');
     }
@@ -72,14 +74,13 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               >
                 Soy Paciente
               </Button>
-              <div className="flex justify-center">
-                <Button
-                  onClick={() => setRole('doctor')}
-                  className="w-40 h-13 font-medium flex items-center justify-center text-white bg-gradient-to-r from-[hsl(270,70%,50%)]/60 to-[hsl(270,70%,45%)]/60 hover:from-[hsl(270,70%,45%)]/70 hover:to-[hsl(270,70%,40%)]/70 transition-all rounded-xl border-0 border-[hsl(270,70%,50%)]/40"
-                >
-                  Soy Médico
-                </Button>
-              </div>
+              <Button
+                onClick={() => setRole('doctor')}
+                variant="ghost"
+                className="w-full max-w-[200px] mx-auto h-auto py-2 text-sm font-semibold flex items-center justify-center text-[hsl(270,70%,45%)] hover:text-[hsl(270,70%,35%)] hover:bg-[hsl(270,70%,95%)] underline underline-offset-2 transition-all rounded-lg"
+              >
+                Soy Médico
+              </Button>
             </div>
           </div>
         </div>
@@ -169,6 +170,30 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                 </div>
               </div>
 
+              <div>
+                <Label htmlFor="patientPassword" className="text-base font-semibold text-gray-700 mb-2 block">
+                  Contraseña
+                </Label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[hsl(270,81%,56%)] z-10">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <Input
+                    id="patientPassword"
+                    type="password"
+                    placeholder="Contraseña"
+                    value={patientPassword}
+                    onChange={(e) => {
+                      setPatientPassword(e.target.value);
+                      setError('');
+                    }}
+                    className="h-14 pl-12 pr-4 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                  />
+                </div>
+              </div>
+
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
@@ -178,7 +203,7 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
               <Button
                 onClick={handlePatientLogin}
                 className="w-full h-14 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(270,70%,50%)] to-[hsl(270,70%,45%)] hover:from-[hsl(270,70%,45%)] hover:to-[hsl(270,70%,40%)] transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border-0 shadow-[0_0_20px_rgba(147,51,234,0.6),0_4px_15px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_rgba(147,51,234,0.8),0_6px_20px_rgba(147,51,234,0.6)] disabled:shadow-none"
-                disabled={dni.length < 7}
+                disabled={dni.length < 7 || !patientPassword}
               >
                 Continuar
               </Button>
@@ -274,26 +299,15 @@ export function Login({ onPatientLogin, onDoctorLogin }: LoginProps) {
                 </div>
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   placeholder="Contraseña"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  className="h-14 pl-12 pr-12 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
+                  className="h-14 pl-12 pr-4 text-lg bg-[hsl(270,81%,96%)] border-[hsl(270,81%,85%)] focus:border-[hsl(270,81%,56%)] focus:ring-[hsl(270,81%,56%)]"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[hsl(270,81%,56%)] hover:text-[hsl(270,81%,40%)] z-10"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
               </div>
             </div>
 
