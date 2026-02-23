@@ -8,11 +8,12 @@ import { Label } from '@/app/components/ui/label';
 import { Doctor, MedicationRecord } from '@/app/types';
 import { getClinicalRecommendations, type ClinicalRecommendation } from '@/app/services/clinicalAI';
 import { mockPatients, getPatientRecords, addPainRecord, getMedicationRecords, getInterventionalTreatments } from '@/app/data/mockData';
-import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X, Pill, Syringe, Brain, RefreshCw, CalendarClock, FlaskConical, Sparkles, ClipboardList } from 'lucide-react';
+import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X, Pill, Syringe, Brain, RefreshCw, CalendarClock, FlaskConical, Sparkles, ClipboardList, Image, Droplets } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie, ScatterChart, Scatter, ComposedChart, ReferenceLine } from 'recharts';
 import ClinicalRow from '@/app/components/ui/clinicalRow';
 import { ConsultationForm, ConsultationData } from './ConsultationForm';
 import BodyHeatmap from './BodyHeatmap';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 
 interface DoctorDashboardProps {
   doctor: Doctor;
@@ -50,6 +51,7 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   const [aiRecommendation, setAiRecommendation] = useState<ClinicalRecommendation | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [showAnalisis, setShowAnalisis] = useState(false);
 
   const selectedPatient = selectedPatientDNI 
     ? patients.find(p => p.dni === selectedPatientDNI)
@@ -500,9 +502,11 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
       <div className="bg-white shadow-lg px-4 sm:px-6 py-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <Stethoscope className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
-            </div>
+            <img
+              src="/images/logo-cimed.png"
+              alt="PainTrack CIMED"
+              className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
+            />
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-blue-900">PainTrack CIMED</h2>
               <p className="text-xs sm:text-sm text-gray-600">{doctor.name}</p>
@@ -1563,14 +1567,75 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
             </Card>
 
             {/* Botones de acción */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-6">
               <Button className="h-16 text-lg font-bold bg-purple-600 hover:bg-purple-700">
                 RECOMENDAR CITA
               </Button>
               <Button onClick={exportHistorialPDF} variant="outline" className="h-16 text-lg font-bold">
                 EXPORTAR HISTORIAL
               </Button>
+              <Button onClick={() => setShowAnalisis(true)} variant="outline" className="h-16 text-lg font-bold">
+                ANÁLISIS
+              </Button>
             </div>
+
+            {/* Dialog Análisis - Placas y análisis de sangre */}
+            <Dialog open={showAnalisis} onOpenChange={setShowAnalisis}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold text-blue-900">
+                    Análisis - {selectedPatient?.name}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6 pt-2">
+                  {/* Placas (Rayos X) */}
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-800 flex items-center gap-2 mb-3">
+                      <Image className="w-5 h-5" />
+                      Placas (Rayos X)
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Rayos X de rodilla y espalda</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-blue-700">Placa de rodilla</p>
+                        <div className="rounded-xl overflow-hidden border-2 border-blue-200 bg-white shadow-md">
+                          <img
+                            src="/images/rodilla.jpg"
+                            alt="Placa de rodilla"
+                            className="w-full h-auto object-contain max-h-[300px]"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-blue-700">Placa de espalda</p>
+                        <div className="rounded-xl overflow-hidden border-2 border-blue-200 bg-white shadow-md">
+                          <img
+                            src="/images/Placa_espalda.jpg"
+                            alt="Placa de espalda"
+                            className="w-full h-auto object-contain max-h-[300px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Análisis de sangre */}
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-800 flex items-center gap-2 mb-3">
+                      <Droplets className="w-5 h-5" />
+                      Análisis de sangre
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Resultados de laboratorio</p>
+                    <div className="rounded-xl overflow-hidden border-2 border-blue-200 bg-white shadow-md">
+                      <img
+                        src="/images/resultados.png"
+                        alt="Resultados de análisis de sangre"
+                        className="w-full h-auto object-contain max-h-[400px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         ) : (
           <Card className="shadow-xl">
