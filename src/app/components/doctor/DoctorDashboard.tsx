@@ -6,8 +6,9 @@ import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Doctor, MedicationRecord } from '@/app/types';
+import { getClinicalRecommendations, type ClinicalRecommendation } from '@/app/services/clinicalAI';
 import { mockPatients, getPatientRecords, addPainRecord, getMedicationRecords, getInterventionalTreatments } from '@/app/data/mockData';
-import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X, Pill, Syringe } from 'lucide-react';
+import { LogOut, User, Calendar, TrendingUp, AlertTriangle, Stethoscope, Activity, TrendingDown, BarChart3, MapPin, FileText, Edit2, Save, X, Pill, Syringe, Brain, RefreshCw, CalendarClock, FlaskConical, Sparkles, ClipboardList } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie, ScatterChart, Scatter, ComposedChart, ReferenceLine } from 'recharts';
 import ClinicalRow from '@/app/components/ui/clinicalRow';
 import { ConsultationForm, ConsultationData } from './ConsultationForm';
@@ -46,6 +47,9 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
   const [referralData, setReferralData] = useState({ referringDoctor: '', whoRecommended: '' });
   const [painDaysRange, setPainDaysRange] = useState<7 | 14 | 30>(30);
   const [medDaysRange, setMedDaysRange] = useState<7 | 14 | 30>(30);
+  const [aiRecommendation, setAiRecommendation] = useState<ClinicalRecommendation | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const selectedPatient = selectedPatientDNI 
     ? patients.find(p => p.dni === selectedPatientDNI)
@@ -237,6 +241,25 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
         whoRecommended: selectedPatient.whoRecommended || ''
       });
     }
+  }, [selectedPatientDNI]);
+
+  // Llamar a la IA cuando se selecciona un paciente con registros
+  useEffect(() => {
+    if (!selectedPatient || selectedRecords.length === 0) {
+      setAiRecommendation(null);
+      return;
+    }
+    const currentStats = getPatientStats();
+    if (!currentStats) return;
+
+    setAiLoading(true);
+    setAiError(null);
+    setAiRecommendation(null);
+
+    getClinicalRecommendations(selectedPatient, selectedRecords, currentStats)
+      .then((rec) => setAiRecommendation(rec))
+      .catch((err) => setAiError(err.message ?? 'Error al contactar el asistente IA'))
+      .finally(() => setAiLoading(false));
   }, [selectedPatientDNI]);
 
   // Función para guardar datos de referencia
@@ -1426,6 +1449,116 @@ export function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Asistente Clínico IA */}
+            <Card className="shadow-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-indigo-900 flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-indigo-600" />
+                    Asistente Clínico IA
+                  </CardTitle>
+                  <button
+                    onClick={() => {
+                      const currentStats = getPatientStats();
+                      if (!selectedPatient || !currentStats) return;
+                      setAiLoading(true);
+                      setAiError(null);
+                      setAiRecommendation(null);
+                      getClinicalRecommendations(selectedPatient, selectedRecords, currentStats)
+                        .then((rec) => setAiRecommendation(rec))
+                        .catch((err) => setAiError(err.message ?? 'Error'))
+                        .finally(() => setAiLoading(false));
+                    }}
+                    disabled={aiLoading}
+                    className="flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:opacity-50 transition-all"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${aiLoading ? 'animate-spin' : ''}`} />
+                    {aiLoading ? 'Analizando...' : 'Regenerar'}
+                  </button>
+                </div>
+                <p className="text-xs text-indigo-500 mt-1">Sugerencias de apoyo a la decisión clínica · No reemplaza el criterio médico</p>
+              </CardHeader>
+              <CardContent>
+                {aiLoading && (
+                  <div className="flex flex-col items-center justify-center py-10 gap-3">
+                    <Brain className="w-10 h-10 text-indigo-400 animate-pulse" />
+                    <p className="text-sm text-indigo-500 font-medium">Analizando datos del paciente...</p>
+                  </div>
+                )}
+
+                {aiError && !aiLoading && (
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+                    <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <p className="text-sm text-red-700">{aiError}</p>
+                  </div>
+                )}
+
+                {aiRecommendation && !aiLoading && (
+                  <div className="space-y-4">
+                    {/* Urgencia */}
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full w-fit font-bold text-sm ${
+                      aiRecommendation.urgency === 'alta'
+                        ? 'bg-red-100 text-red-800'
+                        : aiRecommendation.urgency === 'media'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      <AlertTriangle className={`w-4 h-4 ${
+                        aiRecommendation.urgency === 'alta' ? 'text-red-600'
+                        : aiRecommendation.urgency === 'media' ? 'text-amber-600'
+                        : 'text-green-600'
+                      }`} />
+                      Prioridad {aiRecommendation.urgency.charAt(0).toUpperCase() + aiRecommendation.urgency.slice(1)}
+                    </div>
+
+                    {/* Cita recomendada */}
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                      <p className="text-xs font-bold text-blue-700 flex items-center gap-1 mb-1">
+                        <CalendarClock className="w-3.5 h-3.5" /> Cita recomendada
+                      </p>
+                      <p className="text-sm text-gray-800">{aiRecommendation.appointmentRecommendation}</p>
+                    </div>
+
+                    {/* Diagnósticos sugeridos */}
+                    <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+                      <p className="text-xs font-bold text-purple-700 flex items-center gap-1 mb-2">
+                        <FlaskConical className="w-3.5 h-3.5" /> Diagnósticos sugeridos
+                      </p>
+                      <ul className="space-y-1">
+                        {aiRecommendation.diagnosticSuggestions.map((s, i) => (
+                          <li key={i} className="text-sm text-gray-800 flex items-start gap-2">
+                            <span className="text-purple-400 mt-0.5">•</span>{s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Tratamientos sugeridos */}
+                    <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
+                      <p className="text-xs font-bold text-teal-700 flex items-center gap-1 mb-2">
+                        <Sparkles className="w-3.5 h-3.5" /> Sugerencias de tratamiento
+                      </p>
+                      <ul className="space-y-1">
+                        {aiRecommendation.treatmentSuggestions.map((s, i) => (
+                          <li key={i} className="text-sm text-gray-800 flex items-start gap-2">
+                            <span className="text-teal-400 mt-0.5">•</span>{s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Observaciones */}
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <p className="text-xs font-bold text-gray-600 flex items-center gap-1 mb-1">
+                        <ClipboardList className="w-3.5 h-3.5" /> Observaciones
+                      </p>
+                      <p className="text-sm text-gray-700 italic">{aiRecommendation.observations}</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
